@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>UB Bus Map</title>
 
@@ -12,6 +18,7 @@
   >
 
   <style>
+
     html,
     body {
       margin: 0;
@@ -24,7 +31,11 @@
       height: 100vh;
     }
 
-    /* Bus stop marker */
+
+    /* ========================================
+       Bus Stop Marker
+    ======================================== */
+
     .bus-stop-marker {
       width: 28px;
       height: 28px;
@@ -35,7 +46,9 @@
       border: 3px solid white;
       border-radius: 50%;
 
-      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+      box-shadow:
+        0 1px 5px
+        rgba(0, 0, 0, 0.5);
 
       display: flex;
       justify-content: center;
@@ -43,10 +56,16 @@
 
       font-size: 17px;
       font-weight: bold;
+
+      box-sizing: content-box;
     }
 
-    /* Top panel */
-    #control-panel {
+
+    /* ========================================
+       Top Search Panel
+    ======================================== */
+
+    #search-panel {
       position: absolute;
 
       top: 10px;
@@ -65,14 +84,17 @@
 
       border-radius: 8px;
 
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.3);
     }
 
-    /* Place search */
+
     #place-search-row {
       display: flex;
       width: 100%;
     }
+
 
     #place-search {
       flex: 1;
@@ -84,6 +106,7 @@
       box-sizing: border-box;
     }
 
+
     #search-button {
       width: 50px;
 
@@ -91,6 +114,7 @@
 
       cursor: pointer;
     }
+
 
     #search-results {
       background: white;
@@ -100,6 +124,7 @@
       overflow-y: auto;
     }
 
+
     .search-result {
       padding: 8px;
 
@@ -108,35 +133,213 @@
       cursor: pointer;
     }
 
+
     .search-result:hover {
       background: #eee;
     }
 
-    hr {
-      margin: 10px 0;
+
+    /* ========================================
+       Bottom Container
+    ======================================== */
+
+    #bottom-container {
+      position: absolute;
+
+      bottom: 15px;
+      left: 50%;
+
+      transform: translateX(-50%);
+
+      z-index: 1000;
+
+      width: 90%;
+      max-width: 500px;
+
+      background: white;
+
+      border-radius: 8px;
+
+      box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.3);
+
+      overflow: visible;
     }
 
-    /* Start / Destination */
+
+    /* ========================================
+       Toolbar
+    ======================================== */
+
+    #bottom-toolbar {
+      display: flex;
+      align-items: center;
+
+      gap: 7px;
+
+      padding: 8px;
+
+      min-height: 46px;
+
+      box-sizing: border-box;
+    }
+
+
+    .tool-button {
+      width: 44px;
+      height: 44px;
+
+      border: 1px solid #aaa;
+      border-radius: 6px;
+
+      background: white;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      padding: 0;
+
+      cursor: pointer;
+
+      flex-shrink: 0;
+    }
+
+
+    .tool-button:hover {
+      background: #f2f2f2;
+    }
+
+
+    /*
+      今後ここに他のボタンを追加できるよう
+      中央は空きスペースにする
+    */
+
+    #toolbar-space {
+      flex: 1;
+    }
+
+
+    /* ========================================
+       Bus Stop Toggle
+    ======================================== */
+
+    #bus-stop-toggle {
+      position: relative;
+    }
+
+
+    .toolbar-bus-marker {
+      position: relative;
+
+      width: 28px;
+      height: 28px;
+
+      background-color: #1976d2;
+      color: white;
+
+      border: 3px solid white;
+      border-radius: 50%;
+
+      box-shadow:
+        0 1px 5px
+        rgba(0, 0, 0, 0.5);
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+
+    /*
+      バス停表示中
+      → 押すと非表示になるので斜線を表示
+    */
+
+    #bus-stop-toggle.hide-action
+    .toolbar-bus-marker::after {
+      content: "";
+
+      position: absolute;
+
+      left: 50%;
+      top: 50%;
+
+      width: 37px;
+      height: 3px;
+
+      background: black;
+
+      border-radius: 2px;
+
+      transform:
+        translate(-50%, -50%)
+        rotate(-45deg);
+
+      z-index: 10;
+
+      pointer-events: none;
+    }
+
+
+    /* ========================================
+       Collapse Button
+    ======================================== */
+
+    #panel-toggle {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+
+    /* ========================================
+       Route Panel
+    ======================================== */
+
+    #route-panel {
+      padding:
+        0 10px 10px 10px;
+
+      border-top:
+        1px solid #ddd;
+    }
+
+
+    #route-panel.closed {
+      display: none;
+    }
+
+
     .bus-input-row {
       display: flex;
       align-items: center;
 
-      margin-top: 8px;
+      margin-top: 10px;
 
       position: relative;
     }
 
+
     .bus-input-label {
-      width: 105px;
+      width: 95px;
 
       font-weight: bold;
+
+      flex-shrink: 0;
     }
+
 
     .bus-input-wrapper {
       flex: 1;
 
       position: relative;
     }
+
 
     .bus-input {
       width: 100%;
@@ -148,11 +351,16 @@
       box-sizing: border-box;
     }
 
-    /* Bus stop suggestions */
+
+    /* ========================================
+       Bus Stop Suggestions
+    ======================================== */
+
     .bus-suggestions {
       position: absolute;
 
-      top: 100%;
+      bottom: 100%;
+
       left: 0;
       right: 0;
 
@@ -164,22 +372,29 @@
 
       overflow-y: auto;
 
-      z-index: 2000;
+      z-index: 3000;
     }
+
 
     .bus-suggestion {
       padding: 8px;
 
-      border-bottom: 1px solid #ddd;
+      border-bottom:
+        1px solid #ddd;
 
       cursor: pointer;
     }
+
 
     .bus-suggestion:hover {
       background: #eee;
     }
 
-    /* Popup buttons */
+
+    /* ========================================
+       Popup
+    ======================================== */
+
     .popup-button {
       display: block;
 
@@ -192,7 +407,11 @@
       cursor: pointer;
     }
 
-    /* Route search button */
+
+    /* ========================================
+       Search Routes
+    ======================================== */
+
     #route-search-button {
       width: 100%;
 
@@ -206,23 +425,56 @@
       cursor: pointer;
     }
 
+
     #route-search-button:disabled {
       cursor: not-allowed;
 
       opacity: 0.5;
     }
+
+
+    /* ========================================
+       Smartphone
+    ======================================== */
+
+    @media (max-width: 600px) {
+
+      #search-panel {
+        width: calc(100% - 30px);
+      }
+
+      #bottom-container {
+        width: calc(100% - 20px);
+
+        bottom: 10px;
+      }
+
+      .bus-input-label {
+        width: 90px;
+
+        font-size: 14px;
+      }
+
+      .bus-input {
+        font-size: 14px;
+      }
+
+    }
+
   </style>
+
 </head>
+
 
 <body>
 
-  <!-- =========================
-       Control Panel
-  ========================== -->
 
-  <div id="control-panel">
+  <!-- ========================================
+       Top Search
+  ======================================== -->
 
-    <!-- Place Search -->
+  <div id="search-panel">
+
     <div id="place-search-row">
 
       <input
@@ -240,126 +492,228 @@
 
     <div id="search-results"></div>
 
+  </div>
 
-    <hr>
 
 
-    <!-- Start -->
+  <!-- ========================================
+       Bottom UI
+  ======================================== -->
 
-    <div class="bus-input-row">
+  <div id="bottom-container">
 
-      <div class="bus-input-label">
-        Start:
-      </div>
 
-      <div class="bus-input-wrapper">
+    <!-- Toolbar -->
 
-        <input
-          type="text"
-          id="start-stop-input"
-          class="bus-input"
-          placeholder="Enter bus stop name or select a map pin"
-        >
+    <div id="bottom-toolbar">
 
-        <div
-          id="start-stop-suggestions"
-          class="bus-suggestions"
-        ></div>
 
-      </div>
+      <!-- Bus Stop Visibility -->
+
+      <button
+        id="bus-stop-toggle"
+        class="tool-button hide-action"
+        aria-label="Hide bus stops"
+      >
+
+        <div class="toolbar-bus-marker">
+          B
+        </div>
+
+      </button>
+
+
+      <!--
+        今後ここにボタンを追加できます。
+
+        例：
+
+        <button class="tool-button">
+          ◎
+        </button>
+
+        <button class="tool-button">
+          ≡
+        </button>
+      -->
+
+
+      <div id="toolbar-space"></div>
+
+
+      <!-- Open / Close Route Panel -->
+
+      <button
+        id="panel-toggle"
+        class="tool-button"
+        aria-label="Close route search"
+      >
+        ▼
+      </button>
+
 
     </div>
 
 
-    <!-- Destination -->
 
-    <div class="bus-input-row">
+    <!-- ========================================
+         Route Search Panel
+    ======================================== -->
 
-      <div class="bus-input-label">
-        Destination:
+    <div id="route-panel">
+
+
+      <!-- Start -->
+
+      <div class="bus-input-row">
+
+        <div class="bus-input-label">
+          Start:
+        </div>
+
+
+        <div class="bus-input-wrapper">
+
+          <input
+            type="text"
+            id="start-stop-input"
+            class="bus-input"
+            placeholder="Enter bus stop name or select a map pin"
+          >
+
+          <div
+            id="start-stop-suggestions"
+            class="bus-suggestions"
+          ></div>
+
+        </div>
+
       </div>
 
-      <div class="bus-input-wrapper">
 
-        <input
-          type="text"
-          id="destination-stop-input"
-          class="bus-input"
-          placeholder="Enter bus stop name or select a map pin"
-        >
 
-        <div
-          id="destination-stop-suggestions"
-          class="bus-suggestions"
-        ></div>
+      <!-- Destination -->
+
+      <div class="bus-input-row">
+
+        <div class="bus-input-label">
+          Destination:
+        </div>
+
+
+        <div class="bus-input-wrapper">
+
+          <input
+            type="text"
+            id="destination-stop-input"
+            class="bus-input"
+            placeholder="Enter bus stop name or select a map pin"
+          >
+
+          <div
+            id="destination-stop-suggestions"
+            class="bus-suggestions"
+          ></div>
+
+        </div>
 
       </div>
+
+
+
+      <!-- Search Routes -->
+
+      <button
+        id="route-search-button"
+        disabled
+      >
+        Search Routes
+      </button>
+
 
     </div>
-
-
-    <!-- Route Search -->
-
-    <button
-      id="route-search-button"
-      disabled
-    >
-      Search Routes
-    </button>
 
   </div>
 
 
-  <!-- Map -->
+
+  <!-- ========================================
+       Map
+  ======================================== -->
 
   <div id="map"></div>
 
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  ></script>
+
 
 
   <script>
 
-    /* =========================
-       Map
-    ========================== */
 
-    const map = L.map("map").setView(
-      [47.9187, 106.9075],
-      14
-    );
+    /* ========================================
+       Map
+    ======================================== */
+
+    const map =
+      L.map("map").setView(
+
+        [
+          47.9187,
+          106.9075
+        ],
+
+        14
+
+      );
 
 
     L.tileLayer(
+
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
       {
+
         maxZoom: 19,
 
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+
       }
+
     ).addTo(map);
 
 
 
-    /* =========================
+    /* ========================================
        Current Location
-    ========================== */
+    ======================================== */
 
     navigator.geolocation.getCurrentPosition(
 
       (position) => {
 
+
         const lat =
           position.coords.latitude;
+
 
         const lng =
           position.coords.longitude;
 
 
-        L.marker([lat, lng])
+        L.marker(
+          [lat, lng]
+        )
+
           .addTo(map)
-          .bindPopup("Current Location");
+
+          .bindPopup(
+            "Current Location"
+          );
 
 
         map.setView(
@@ -373,56 +727,273 @@
       (error) => {
 
         console.error(
+
           "Could not get current location.",
+
           error
+
         );
 
       },
 
 
       {
+
         enableHighAccuracy: true,
 
         timeout: 10000,
 
         maximumAge: 0
+
       }
 
     );
 
 
 
-    /* =========================
+    /* ========================================
        Bus Stop Icon
-    ========================== */
+    ======================================== */
 
-    const busStopIcon = L.divIcon({
+    const busStopIcon =
+      L.divIcon({
 
-      className: "",
+        className: "",
 
-      html:
-        '<div class="bus-stop-marker">B</div>',
+        html:
+          '<div class="bus-stop-marker">B</div>',
 
-      iconSize: [34, 34],
+        iconSize:
+          [34, 34],
 
-      iconAnchor: [17, 17],
+        iconAnchor:
+          [17, 17],
 
-      popupAnchor: [0, -17]
+        popupAnchor:
+          [0, -17]
 
-    });
+      });
 
 
 
-    /* =========================
+    /* ========================================
+       Bus Stop Layer
+    ======================================== */
+
+    const busStopLayer =
+      L.layerGroup()
+        .addTo(map);
+
+
+    let busStopsVisible =
+      true;
+
+
+    const busStopToggle =
+      document.getElementById(
+        "bus-stop-toggle"
+      );
+
+
+
+    busStopToggle.addEventListener(
+
+      "click",
+
+      () => {
+
+
+        /*
+          現在表示中
+          ↓
+          非表示
+        */
+
+        if (
+          busStopsVisible
+        ) {
+
+
+          map.removeLayer(
+            busStopLayer
+          );
+
+
+          busStopsVisible =
+            false;
+
+
+          /*
+            次に押すと表示なので
+            斜線なし
+          */
+
+          busStopToggle
+            .classList
+            .remove(
+              "hide-action"
+            );
+
+
+          busStopToggle.setAttribute(
+
+            "aria-label",
+
+            "Show bus stops"
+
+          );
+
+        }
+
+
+        /*
+          現在非表示
+          ↓
+          表示
+        */
+
+        else {
+
+
+          busStopLayer
+            .addTo(map);
+
+
+          busStopsVisible =
+            true;
+
+
+          /*
+            次に押すと非表示なので
+            斜線あり
+          */
+
+          busStopToggle
+            .classList
+            .add(
+              "hide-action"
+            );
+
+
+          busStopToggle.setAttribute(
+
+            "aria-label",
+
+            "Hide bus stops"
+
+          );
+
+        }
+
+      }
+
+    );
+
+
+
+    /* ========================================
+       Route Panel Open / Close
+    ======================================== */
+
+    const routePanel =
+      document.getElementById(
+        "route-panel"
+      );
+
+
+    const panelToggle =
+      document.getElementById(
+        "panel-toggle"
+      );
+
+
+    let routePanelOpen =
+      true;
+
+
+
+    panelToggle.addEventListener(
+
+      "click",
+
+      () => {
+
+
+        if (
+          routePanelOpen
+        ) {
+
+
+          routePanel.classList.add(
+            "closed"
+          );
+
+
+          panelToggle.textContent =
+            "▲";
+
+
+          panelToggle.setAttribute(
+
+            "aria-label",
+
+            "Open route search"
+
+          );
+
+
+          routePanelOpen =
+            false;
+
+        }
+
+
+        else {
+
+
+          routePanel.classList.remove(
+            "closed"
+          );
+
+
+          panelToggle.textContent =
+            "▼";
+
+
+          panelToggle.setAttribute(
+
+            "aria-label",
+
+            "Close route search"
+
+          );
+
+
+          routePanelOpen =
+            true;
+
+        }
+
+      }
+
+    );
+
+
+
+    /* ========================================
        Bus Stop Data
-    ========================== */
+    ======================================== */
 
-    const busStops = [];
+    const busStops =
+      [];
 
 
-    let startBusStop = null;
+    let startBusStop =
+      null;
 
-    let destinationBusStop = null;
+
+    let destinationBusStop =
+      null;
 
 
 
@@ -457,58 +1028,68 @@
 
 
 
-    /* =========================
-       Route Button State
-    ========================== */
+    /* ========================================
+       Route Search Button State
+    ======================================== */
 
     function updateRouteSearchButton() {
 
+
       routeSearchButton.disabled =
+
         !startBusStop ||
+
         !destinationBusStop;
 
     }
 
 
 
-    /* =========================
+    /* ========================================
        Set Start / Destination
-    ========================== */
+    ======================================== */
 
-    function setBusStop(type, stop) {
+    function setBusStop(
+      type,
+      stop
+    ) {
 
-      if (type === "start") {
 
-        startBusStop = stop;
+      if (
+        type === "start"
+      ) {
+
+
+        startBusStop =
+          stop;
+
 
         startInput.value =
           stop.displayName;
 
+
         startSuggestions.innerHTML =
           "";
-
-        console.log(
-          "Start:",
-          startBusStop
-        );
 
       }
 
 
-      if (type === "destination") {
 
-        destinationBusStop = stop;
+      if (
+        type === "destination"
+      ) {
+
+
+        destinationBusStop =
+          stop;
+
 
         destinationInput.value =
           stop.displayName;
 
+
         destinationSuggestions.innerHTML =
           "";
-
-        console.log(
-          "Destination:",
-          destinationBusStop
-        );
 
       }
 
@@ -519,13 +1100,15 @@
 
 
 
-    /* =========================
+    /* ========================================
        Load Bus Stops
-    ========================== */
+    ======================================== */
 
     async function loadBusStops() {
 
+
       try {
+
 
         const response =
           await fetch(
@@ -533,10 +1116,15 @@
           );
 
 
-        if (!response.ok) {
+        if (
+          !response.ok
+        ) {
+
 
           throw new Error(
+
             `Failed to load file: ${response.status}`
+
           );
 
         }
@@ -547,10 +1135,13 @@
 
 
         if (
+
           !Array.isArray(
             data.elements
           )
+
         ) {
+
 
           throw new Error(
             "Invalid OSM data."
@@ -559,32 +1150,49 @@
         }
 
 
-        let count = 0;
+
+        let count =
+          0;
+
 
 
         data.elements.forEach(
+
           (element) => {
 
+
             const lat =
+
               element.lat ??
+
               element.center?.lat;
 
 
             const lng =
+
               element.lon ??
+
               element.center?.lon;
 
 
+
             if (
+
               !Number.isFinite(lat) ||
+
               !Number.isFinite(lng) ||
+
               Math.abs(lat) > 90 ||
+
               Math.abs(lng) > 180
+
             ) {
+
 
               return;
 
             }
+
 
 
             const tags =
@@ -611,48 +1219,72 @@
               "Unnamed Bus Stop";
 
 
+
             const stop = {
+
 
               id:
                 busStops.length,
 
-              lat: lat,
 
-              lng: lng,
+              lat:
+                lat,
+
+
+              lng:
+                lng,
+
 
               displayName:
                 displayName,
 
+
               nameMn:
+
                 tags["name:mn"] ||
+
                 tags.name ||
+
                 "",
 
+
               nameEn:
+
                 tags["name:en"] ||
+
                 ""
 
             };
 
 
-            busStops.push(stop);
+            busStops.push(
+              stop
+            );
 
 
 
-            /* Create Marker */
+            /* Marker */
 
             const marker =
               L.marker(
-                [lat, lng],
+
+                [
+                  lat,
+                  lng
+                ],
+
                 {
+
                   icon:
                     busStopIcon
+
                 }
+
               );
 
 
 
-            /* Create Popup */
+            /* Popup */
 
             const popup =
               document.createElement(
@@ -697,8 +1329,11 @@
 
 
             startButton.addEventListener(
+
               "click",
+
               () => {
+
 
                 setBusStop(
                   "start",
@@ -709,6 +1344,7 @@
                 map.closePopup();
 
               }
+
             );
 
 
@@ -730,8 +1366,11 @@
 
 
             destinationButton.addEventListener(
+
               "click",
+
               () => {
+
 
                 setBusStop(
                   "destination",
@@ -742,6 +1381,7 @@
                 map.closePopup();
 
               }
+
             );
 
 
@@ -756,10 +1396,15 @@
             );
 
 
-
             marker
-              .addTo(map)
-              .bindPopup(popup);
+
+              .addTo(
+                busStopLayer
+              )
+
+              .bindPopup(
+                popup
+              );
 
 
             stop.marker =
@@ -769,23 +1414,35 @@
             count++;
 
           }
+
         );
 
 
         console.log(
+
           `${count} bus stops loaded.`
+
+        );
+
+      }
+
+
+      catch (error) {
+
+
+        console.error(
+          error
         );
 
 
-      } catch (error) {
-
-        console.error(error);
-
-
         alert(
+
           "Could not load bus stop data.\n"
+
           +
+
           error.message
+
         );
 
       }
@@ -798,31 +1455,42 @@
 
 
 
-    /* =========================
+    /* ========================================
        Bus Stop Search
-    ========================== */
+    ======================================== */
 
     function searchBusStops(
+
       query,
+
       resultElement,
+
       type
+
     ) {
+
 
       resultElement.innerHTML =
         "";
 
 
       const text =
+
         query
+
           .trim()
+
           .toLowerCase();
 
 
-      if (!text) {
+      if (
+        !text
+      ) {
 
         return;
 
       }
+
 
 
       const results =
@@ -830,7 +1498,9 @@
         busStops
 
           .filter(
+
             (stop) => {
+
 
               return (
 
@@ -853,15 +1523,20 @@
               );
 
             }
+
           )
 
-          .slice(0, 8);
+          .slice(
+            0,
+            8
+          );
 
 
 
       if (
         results.length === 0
       ) {
+
 
         const noResult =
           document.createElement(
@@ -889,7 +1564,9 @@
 
 
       results.forEach(
+
         (stop) => {
+
 
           const item =
             document.createElement(
@@ -906,8 +1583,11 @@
 
 
           item.addEventListener(
+
             "click",
+
             () => {
+
 
               setBusStop(
                 type,
@@ -916,17 +1596,29 @@
 
 
               map.setView(
+
                 [
                   stop.lat,
                   stop.lng
                 ],
+
                 16
+
               );
 
 
-              stop.marker.openPopup();
+              if (
+                busStopsVisible
+              ) {
+
+
+                stop.marker
+                  .openPopup();
+
+              }
 
             }
+
           );
 
 
@@ -935,33 +1627,37 @@
           );
 
         }
+
       );
 
     }
 
 
 
-    /* =========================
+    /* ========================================
        Start Input
-    ========================== */
+    ======================================== */
 
     startInput.addEventListener(
+
       "input",
+
       () => {
 
-        /*
-          If user manually edits the
-          selected bus stop,
-          clear the current selection.
-        */
 
         if (
+
           startBusStop &&
+
           startInput.value !==
             startBusStop.displayName
+
         ) {
 
-          startBusStop = null;
+
+          startBusStop =
+            null;
+
 
           updateRouteSearchButton();
 
@@ -979,26 +1675,35 @@
         );
 
       }
+
     );
 
 
 
-    /* =========================
+    /* ========================================
        Destination Input
-    ========================== */
+    ======================================== */
 
     destinationInput.addEventListener(
+
       "input",
+
       () => {
 
+
         if (
+
           destinationBusStop &&
+
           destinationInput.value !==
             destinationBusStop.displayName
+
         ) {
+
 
           destinationBusStop =
             null;
+
 
           updateRouteSearchButton();
 
@@ -1016,58 +1721,63 @@
         );
 
       }
+
     );
 
 
 
-    /* =========================
+    /* ========================================
        Search Routes
-    ========================== */
+    ======================================== */
 
     routeSearchButton.addEventListener(
+
       "click",
+
       () => {
 
+
         if (
+
           !startBusStop ||
+
           !destinationBusStop
+
         ) {
+
 
           return;
 
         }
 
 
-        console.log(
-          "Search routes:",
-          startBusStop,
-          destinationBusStop
-        );
-
-
-        /*
-          Route search will be
-          implemented here next.
-        */
-
         alert(
+
           "Start:\n"
+
           +
+
           startBusStop.displayName
+
           +
+
           "\n\nDestination:\n"
+
           +
+
           destinationBusStop.displayName
+
         );
 
       }
+
     );
 
 
 
-    /* =========================
+    /* ========================================
        Place Search
-    ========================== */
+    ======================================== */
 
     const searchInput =
       document.getElementById(
@@ -1087,17 +1797,21 @@
       );
 
 
-    let searchMarker = null;
+    let searchMarker =
+      null;
 
 
 
     async function searchPlace() {
 
+
       const query =
         searchInput.value.trim();
 
 
-      if (!query) {
+      if (
+        !query
+      ) {
 
         return;
 
@@ -1105,10 +1819,13 @@
 
 
       searchResults.innerHTML =
+
         "<div class='search-result'>Searching...</div>";
 
 
+
       try {
+
 
         const url =
 
@@ -1138,10 +1855,15 @@
 
 
         const response =
-          await fetch(url);
+          await fetch(
+            url
+          );
 
 
-        if (!response.ok) {
+        if (
+          !response.ok
+        ) {
+
 
           throw new Error(
             "Place search failed."
@@ -1162,7 +1884,9 @@
           data.length === 0
         ) {
 
+
           searchResults.innerHTML =
+
             "<div class='search-result'>No results found</div>";
 
 
@@ -1171,9 +1895,10 @@
         }
 
 
-
         data.forEach(
+
           (place) => {
+
 
             const item =
               document.createElement(
@@ -1190,8 +1915,11 @@
 
 
             item.addEventListener(
+
               "click",
+
               () => {
+
 
                 const lat =
                   parseFloat(
@@ -1206,14 +1934,21 @@
 
 
                 map.setView(
-                  [lat, lon],
+
+                  [
+                    lat,
+                    lon
+                  ],
+
                   16
+
                 );
 
 
                 if (
                   searchMarker
                 ) {
+
 
                   map.removeLayer(
                     searchMarker
@@ -1225,7 +1960,10 @@
                 searchMarker =
 
                   L.marker(
-                    [lat, lon]
+                    [
+                      lat,
+                      lon
+                    ]
                   )
 
                     .addTo(map)
@@ -1241,6 +1979,7 @@
                   "";
 
               }
+
             );
 
 
@@ -1249,15 +1988,22 @@
             );
 
           }
+
+        );
+
+      }
+
+
+      catch (error) {
+
+
+        console.error(
+          error
         );
 
 
-      } catch (error) {
-
-        console.error(error);
-
-
         searchResults.innerHTML =
+
           "<div class='search-result'>Search failed</div>";
 
       }
@@ -1267,28 +2013,38 @@
 
 
     searchButton.addEventListener(
+
       "click",
+
       searchPlace
+
     );
 
 
-
     searchInput.addEventListener(
+
       "keydown",
+
       (event) => {
+
 
         if (
           event.key === "Enter"
         ) {
+
 
           searchPlace();
 
         }
 
       }
+
     );
+
 
   </script>
 
+
 </body>
+
 </html>
