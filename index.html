@@ -37,29 +37,28 @@
     ======================================== */
 
     .bus-stop-marker {
-    width: 22px;
-    height: 22px;
+      width: 22px;
+      height: 22px;
 
-    background-color: #1976d2;
-    color: white;
+      background-color: #1976d2;
+      color: white;
 
-    border: 2px solid white;
-    border-radius: 50%;
+      border: 2px solid white;
+      border-radius: 50%;
 
-    box-shadow:
+      box-shadow:
         0 1px 4px
         rgba(0, 0, 0, 0.45);
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
 
-    font-size: 14px;
-    font-weight: bold;
+      font-size: 14px;
+      font-weight: bold;
 
-    box-sizing: content-box;
+      box-sizing: content-box;
     }
-
 
     /* ========================================
        Top Search Panel
@@ -212,11 +211,6 @@
     }
 
 
-    /*
-      今後ここに他のボタンを追加できるよう
-      中央は空きスペースにする
-    */
-
     #toolbar-space {
       flex: 1;
     }
@@ -234,32 +228,27 @@
     .toolbar-bus-marker {
       position: relative;
 
-      width: 28px;
-      height: 28px;
+      width: 22px;
+      height: 22px;
 
       background-color: #1976d2;
       color: white;
 
-      border: 3px solid white;
+      border: 2px solid white;
       border-radius: 50%;
 
       box-shadow:
-        0 1px 5px
-        rgba(0, 0, 0, 0.5);
+        0 1px 4px
+        rgba(0, 0, 0, 0.45);
 
       display: flex;
       justify-content: center;
       align-items: center;
 
-      font-size: 17px;
+      font-size: 14px;
       font-weight: bold;
     }
 
-
-    /*
-      バス停表示中
-      → 押すと非表示になるので斜線を表示
-    */
 
     #bus-stop-toggle.hide-action
     .toolbar-bus-marker::after {
@@ -270,7 +259,7 @@
       left: 50%;
       top: 50%;
 
-      width: 37px;
+      width: 32px;
       height: 3px;
 
       background: black;
@@ -523,21 +512,6 @@
       </button>
 
 
-      <!--
-        今後ここにボタンを追加できます。
-
-        例：
-
-        <button class="tool-button">
-          ◎
-        </button>
-
-        <button class="tool-button">
-          ≡
-        </button>
-      -->
-
-
       <div id="toolbar-space"></div>
 
 
@@ -659,12 +633,18 @@
     ======================================== */
 
     const map =
-    L.map("map", {
+      L.map("map", {
         zoomControl: false
-    }).setView(
-        [47.9187, 106.9075],
+      }).setView(
+
+        [
+          47.9187,
+          106.9075
+        ],
+
         14
-    );
+
+      );
 
 
     L.tileLayer(
@@ -688,6 +668,31 @@
        Current Location
     ======================================== */
 
+    const currentLocationIcon =
+    L.icon({
+
+        iconUrl:
+        "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+
+        shadowUrl:
+        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+
+        iconSize:
+        [25, 41],
+
+        iconAnchor:
+        [12, 41],
+
+        popupAnchor:
+        [1, -34],
+
+        shadowSize:
+        [41, 41]
+
+  });
+
+
+
     navigator.geolocation.getCurrentPosition(
 
       (position) => {
@@ -702,7 +707,11 @@
 
 
         L.marker(
-          [lat, lng]
+          [lat, lng],
+          {
+            icon:
+              currentLocationIcon
+          }
         )
 
           .addTo(map)
@@ -752,23 +761,23 @@
     ======================================== */
 
     const busStopIcon =
-    L.divIcon({
+      L.divIcon({
 
         className: "",
 
         html:
-        '<div class="bus-stop-marker">B</div>',
+          '<div class="bus-stop-marker">B</div>',
 
         iconSize:
-        [26, 26],
+          [26, 26],
 
         iconAnchor:
-        [13, 13],
+          [13, 13],
 
         popupAnchor:
-        [0, -13]
+          [0, -13]
 
-    });
+      });
 
 
 
@@ -799,12 +808,6 @@
       () => {
 
 
-        /*
-          現在表示中
-          ↓
-          非表示
-        */
-
         if (
           busStopsVisible
         ) {
@@ -818,11 +821,6 @@
           busStopsVisible =
             false;
 
-
-          /*
-            次に押すと表示なので
-            斜線なし
-          */
 
           busStopToggle
             .classList
@@ -842,12 +840,6 @@
         }
 
 
-        /*
-          現在非表示
-          ↓
-          表示
-        */
-
         else {
 
 
@@ -858,11 +850,6 @@
           busStopsVisible =
             true;
 
-
-          /*
-            次に押すと非表示なので
-            斜線あり
-          */
 
           busStopToggle
             .classList
@@ -1259,8 +1246,6 @@
 
 
 
-            /* Marker */
-
             const marker =
               L.marker(
 
@@ -1279,8 +1264,6 @@
               );
 
 
-
-            /* Popup */
 
             const popup =
               document.createElement(
@@ -1307,8 +1290,6 @@
             );
 
 
-
-            /* Set as Start */
 
             const startButton =
               document.createElement(
@@ -1344,8 +1325,6 @@
             );
 
 
-
-            /* Set as Destination */
 
             const destinationButton =
               document.createElement(
@@ -1798,6 +1777,33 @@
 
 
 
+    /* Red marker for searched place */
+
+    const searchPlaceIcon =
+      L.icon({
+
+        iconUrl:
+          "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+
+        shadowUrl:
+          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+
+        iconSize:
+          [25, 41],
+
+        iconAnchor:
+          [12, 41],
+
+        popupAnchor:
+          [1, -34],
+
+        shadowSize:
+          [41, 41]
+
+      });
+
+
+
     async function searchPlace() {
 
 
@@ -1959,7 +1965,11 @@
                     [
                       lat,
                       lon
-                    ]
+                    ],
+                    {
+                      icon:
+                        searchPlaceIcon
+                    }
                   )
 
                     .addTo(map)
