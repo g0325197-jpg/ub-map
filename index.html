@@ -37,27 +37,27 @@
     ======================================== */
 
     .bus-stop-marker {
-      width: 28px;
-      height: 28px;
+    width: 22px;
+    height: 22px;
 
-      background-color: #1976d2;
-      color: white;
+    background-color: #1976d2;
+    color: white;
 
-      border: 3px solid white;
-      border-radius: 50%;
+    border: 2px solid white;
+    border-radius: 50%;
 
-      box-shadow:
-        0 1px 5px
-        rgba(0, 0, 0, 0.5);
+    box-shadow:
+        0 1px 4px
+        rgba(0, 0, 0, 0.45);
 
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-      font-size: 17px;
-      font-weight: bold;
+    font-size: 14px;
+    font-weight: bold;
 
-      box-sizing: content-box;
+    box-sizing: content-box;
     }
 
 
@@ -659,16 +659,12 @@
     ======================================== */
 
     const map =
-      L.map("map").setView(
-
-        [
-          47.9187,
-          106.9075
-        ],
-
+    L.map("map", {
+        zoomControl: false
+    }).setView(
+        [47.9187, 106.9075],
         14
-
-      );
+    );
 
 
     L.tileLayer(
@@ -756,23 +752,23 @@
     ======================================== */
 
     const busStopIcon =
-      L.divIcon({
+    L.divIcon({
 
         className: "",
 
         html:
-          '<div class="bus-stop-marker">B</div>',
+        '<div class="bus-stop-marker">B</div>',
 
         iconSize:
-          [34, 34],
+        [26, 26],
 
         iconAnchor:
-          [17, 17],
+        [13, 13],
 
         popupAnchor:
-          [0, -17]
+        [0, -13]
 
-      });
+    });
 
 
 
