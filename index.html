@@ -341,6 +341,25 @@
     }
 
 
+    .route-direction-arrow {
+      width: calc(100% - 95px);
+      height: 10px;
+
+      margin-left: 95px;
+
+      color: #777;
+
+      text-align: center;
+      font-size: 13px;
+      line-height: 10px;
+    }
+
+
+    .bus-input-row.after-direction-arrow {
+      margin-top: 0;
+    }
+
+
     /* ========================================
        Bus Stop Suggestions
     ======================================== */
@@ -446,6 +465,11 @@
 
       .bus-input {
         font-size: 14px;
+      }
+
+      .route-direction-arrow {
+        width: calc(100% - 90px);
+        margin-left: 90px;
       }
 
     }
@@ -566,9 +590,18 @@
 
 
 
+      <div
+        class="route-direction-arrow"
+        aria-hidden="true"
+      >
+        ↓
+      </div>
+
+
+
       <!-- Destination -->
 
-      <div class="bus-input-row">
+      <div class="bus-input-row after-direction-arrow">
 
         <div class="bus-input-label">
           Destination:
