@@ -35,6 +35,661 @@ L.tileLayer(
 
 
 /* ========================================
+   Route Geometry
+======================================== */
+
+const routeBasePane =
+  map.createPane(
+    "route-base"
+  );
+
+
+routeBasePane.style.zIndex =
+  410;
+
+
+routeBasePane.style.pointerEvents =
+  "none";
+
+
+const routeOutlinePane =
+  map.createPane(
+    "route-outline"
+  );
+
+
+routeOutlinePane.style.zIndex =
+  420;
+
+
+routeOutlinePane.style.pointerEvents =
+  "none";
+
+
+const routeActivePane =
+  map.createPane(
+    "route-active"
+  );
+
+
+routeActivePane.style.zIndex =
+  430;
+
+
+routeActivePane.style.pointerEvents =
+  "none";
+
+
+let routePolyline =
+  null;
+
+
+let ch52GeometryByRelationId =
+  null;
+
+
+let ch52GeometryPromise =
+  null;
+
+
+let routeSearchRequestId =
+  0;
+
+
+
+function clearRoutePolyline() {
+
+
+  if (
+    routePolyline
+  ) {
+
+
+    map.removeLayer(
+      routePolyline
+    );
+
+
+    routePolyline =
+      null;
+
+  }
+
+}
+
+
+
+async function loadCh52Geometry() {
+
+
+  if (
+    ch52GeometryByRelationId
+  ) {
+
+
+    return ch52GeometryByRelationId;
+
+  }
+
+
+  if (
+    !ch52GeometryPromise
+  ) {
+
+
+    ch52GeometryPromise =
+      fetch(
+        "./data/routes/ch52-geometry.json"
+      )
+        .then(
+
+          (response) => {
+
+
+            if (
+              !response.ok
+            ) {
+
+
+              throw new Error(
+                `Failed to load route geometry: ${response.status}`
+              );
+
+            }
+
+
+            return response.json();
+
+          }
+
+        )
+        .then(
+
+          (data) => {
+
+
+            if (
+              !Array.isArray(
+                data.routes
+              )
+            ) {
+
+
+              throw new Error(
+                "Invalid route geometry data."
+              );
+
+            }
+
+
+            return new Map(
+
+              data.routes.map(
+
+                (route) => [
+                  route.relationId,
+                  route
+                ]
+
+              )
+
+            );
+
+          }
+
+        );
+
+  }
+
+
+  try {
+
+
+    ch52GeometryByRelationId =
+      await ch52GeometryPromise;
+
+
+    return ch52GeometryByRelationId;
+
+  }
+
+
+  catch (error) {
+
+
+    ch52GeometryPromise =
+      null;
+
+
+    throw error;
+
+  }
+
+}
+
+
+
+function getRouteFitBoundsOptions() {
+
+
+  const mapRect =
+    map.getContainer()
+      .getBoundingClientRect();
+
+
+  const panelRect =
+    routePanel.getBoundingClientRect();
+
+
+  const panelOverlap =
+    routePanelOpen
+
+      ? Math.max(
+          0,
+          mapRect.bottom - panelRect.top
+        )
+
+      : 0;
+
+
+  const bottomPadding =
+    Math.min(
+      panelOverlap + 24,
+      Math.floor(
+        mapRect.height * 0.55
+      )
+    );
+
+
+  return {
+
+    paddingTopLeft:
+      [24, 24],
+
+    paddingBottomRight:
+      [24, bottomPadding]
+
+  };
+
+}
+
+
+
+function getClosestRoutePoint(
+  coordinates,
+  projectedCoordinates,
+  stop
+) {
+
+
+  const stopPoint =
+    L.CRS.EPSG3857.project(
+      L.latLng(
+        stop.lat,
+        stop.lng
+      )
+    );
+
+
+  let closestPoint =
+    null;
+
+
+  for (
+    let index = 0;
+    index < projectedCoordinates.length - 1;
+    index++
+  ) {
+
+
+    const segmentStart =
+      projectedCoordinates[index];
+
+
+    const segmentEnd =
+      projectedCoordinates[index + 1];
+
+
+    const deltaX =
+      segmentEnd.x - segmentStart.x;
+
+
+    const deltaY =
+      segmentEnd.y - segmentStart.y;
+
+
+    const segmentLengthSquared =
+      deltaX * deltaX +
+      deltaY * deltaY;
+
+
+    const position =
+      segmentLengthSquared === 0
+
+        ? 0
+
+        : Math.max(
+            0,
+            Math.min(
+              1,
+              (
+                (stopPoint.x - segmentStart.x) * deltaX +
+                (stopPoint.y - segmentStart.y) * deltaY
+              ) /
+              segmentLengthSquared
+            )
+          );
+
+
+    const projectedPoint =
+      L.point(
+        segmentStart.x + deltaX * position,
+        segmentStart.y + deltaY * position
+      );
+
+
+    const distanceSquared =
+      Math.pow(
+        stopPoint.x - projectedPoint.x,
+        2
+      ) +
+      Math.pow(
+        stopPoint.y - projectedPoint.y,
+        2
+      );
+
+
+    if (
+      !closestPoint ||
+
+      distanceSquared <
+        closestPoint.distanceSquared
+    ) {
+
+
+      const latLng =
+        L.CRS.EPSG3857.unproject(
+          projectedPoint
+        );
+
+
+      closestPoint = {
+
+        segmentIndex:
+          index,
+
+        position:
+          position,
+
+        distanceSquared:
+          distanceSquared,
+
+        coordinate: [
+          latLng.lat,
+          latLng.lng
+        ]
+
+      };
+
+    }
+
+  }
+
+
+  return closestPoint;
+
+}
+
+
+
+function getRouteSegmentCoordinates(
+  coordinates,
+  startStop,
+  destinationStop
+) {
+
+
+  const projectedCoordinates =
+    coordinates.map(
+
+      (coordinate) =>
+        L.CRS.EPSG3857.project(
+          L.latLng(
+            coordinate[0],
+            coordinate[1]
+          )
+        )
+
+    );
+
+
+  const startPoint =
+    getClosestRoutePoint(
+      coordinates,
+      projectedCoordinates,
+      startStop
+    );
+
+
+  const destinationPoint =
+    getClosestRoutePoint(
+      coordinates,
+      projectedCoordinates,
+      destinationStop
+    );
+
+
+  if (
+    !startPoint ||
+
+    !destinationPoint ||
+
+    startPoint.segmentIndex + startPoint.position >
+      destinationPoint.segmentIndex + destinationPoint.position
+  ) {
+
+
+    throw new Error(
+      "Could not extract the selected route segment."
+    );
+
+  }
+
+
+  const segmentCoordinates = [
+    startPoint.coordinate
+  ];
+
+
+  for (
+    let index = startPoint.segmentIndex + 1;
+    index <= destinationPoint.segmentIndex;
+    index++
+  ) {
+
+
+    segmentCoordinates.push(
+      coordinates[index]
+    );
+
+  }
+
+
+  segmentCoordinates.push(
+    destinationPoint.coordinate
+  );
+
+
+  return segmentCoordinates.filter(
+
+    (coordinate, index) => {
+
+
+      if (
+        index === 0
+      ) {
+
+
+        return true;
+
+      }
+
+
+      const previousCoordinate =
+        segmentCoordinates[index - 1];
+
+
+      return (
+
+        coordinate[0] !==
+          previousCoordinate[0] ||
+
+        coordinate[1] !==
+          previousCoordinate[1]
+
+      );
+
+    }
+
+  );
+
+}
+
+
+
+async function showRouteGeometry(
+  routeMatch,
+  startStop,
+  destinationStop,
+  requestId
+) {
+
+
+  const geometryByRelationId =
+    await loadCh52Geometry();
+
+
+  if (
+    requestId !== routeSearchRequestId
+  ) {
+
+
+    return;
+
+  }
+
+
+  const routeGeometry =
+    geometryByRelationId.get(
+      routeMatch.route.relationId
+    );
+
+
+  if (
+    !routeGeometry ||
+
+    !Array.isArray(
+      routeGeometry.coordinates
+    ) ||
+
+    routeGeometry.coordinates.length < 2
+  ) {
+
+
+    throw new Error(
+      `Route geometry not found: ${routeMatch.route.relationId}`
+    );
+
+  }
+
+
+  const segmentCoordinates =
+    getRouteSegmentCoordinates(
+      routeGeometry.coordinates,
+      startStop,
+      destinationStop
+    );
+
+
+  clearRoutePolyline();
+
+
+  routePolyline =
+    L.featureGroup([
+
+      L.polyline(
+
+        routeGeometry.coordinates,
+
+        {
+
+          pane:
+            "route-base",
+
+          color:
+            "#1D4ED8",
+
+          weight:
+            4,
+
+          opacity:
+            0.6,
+
+          lineCap:
+            "round",
+
+          lineJoin:
+            "round",
+
+          interactive:
+            false
+
+        }
+
+      ),
+
+
+      L.polyline(
+
+        segmentCoordinates,
+
+        {
+
+          pane:
+            "route-outline",
+
+          color:
+            "#ffffff",
+
+          weight:
+            9,
+
+          opacity:
+            1,
+
+          lineCap:
+            "round",
+
+          lineJoin:
+            "round",
+
+          interactive:
+            false
+
+        }
+
+      ),
+
+
+      L.polyline(
+
+        segmentCoordinates,
+
+        {
+
+          pane:
+            "route-active",
+
+          color:
+            "#D81B60",
+
+          weight:
+            5,
+
+          opacity:
+            1,
+
+          lineCap:
+            "round",
+
+          lineJoin:
+            "round",
+
+          interactive:
+            false
+
+        }
+
+      )
+
+    ]).addTo(map);
+
+
+  map.fitBounds(
+
+    L.latLngBounds(
+      segmentCoordinates
+    ),
+
+    getRouteFitBoundsOptions()
+
+  );
+
+}
+
+
+
+/* ========================================
    Current Location
 ======================================== */
 
@@ -139,13 +794,33 @@ const busStopIcon =
       '<div class="bus-stop-marker">B</div>',
 
     iconSize:
-      [26, 26],
+      [22, 22],
 
     iconAnchor:
-      [13, 13],
+      [11, 11],
 
     popupAnchor:
-      [0, -13]
+      [0, -11]
+
+  });
+
+
+const routeEndpointBusStopIcon =
+  L.divIcon({
+
+    className: "",
+
+    html:
+      '<div class="bus-stop-marker route-endpoint">B</div>',
+
+    iconSize:
+      [22, 22],
+
+    iconAnchor:
+      [11, 11],
+
+    popupAnchor:
+      [0, -11]
 
   });
 
@@ -158,6 +833,129 @@ const busStopIcon =
 const busStopLayer =
   L.layerGroup()
     .addTo(map);
+
+
+function showAllBusStops() {
+
+
+  busStopLayer.clearLayers();
+
+
+  busStops.forEach(
+
+    (stop) => {
+
+
+      if (
+        stop.marker
+      ) {
+
+
+        stop.marker.setIcon(
+          busStopIcon
+        );
+
+
+        busStopLayer.addLayer(
+          stop.marker
+        );
+
+      }
+
+    }
+
+  );
+
+}
+
+
+
+function showBusStopsForRoute(
+  route,
+  startStop,
+  destinationStop
+) {
+
+
+  const platformIds =
+    new Set(
+      route.platformIds
+    );
+
+
+  busStopLayer.clearLayers();
+
+
+  busStops.forEach(
+
+    (stop) => {
+
+
+      const isRouteStop =
+        stop.nodeIds.some(
+
+          (nodeId) =>
+            platformIds.has(
+              nodeId
+            )
+
+        );
+
+
+      if (
+        stop.marker
+      ) {
+
+
+        stop.marker.setIcon(
+          busStopIcon
+        );
+
+      }
+
+
+      if (
+        isRouteStop &&
+
+        stop.marker
+      ) {
+
+
+        busStopLayer.addLayer(
+          stop.marker
+        );
+
+      }
+
+    }
+
+  );
+
+
+  [
+    startStop,
+    destinationStop
+  ].forEach(
+
+    (stop) => {
+
+
+      if (
+        stop.marker
+      ) {
+
+
+        stop.marker.setIcon(
+          routeEndpointBusStopIcon
+        );
+
+      }
+
+    }
+
+  );
+
+}
 
 
 let busStopsVisible =
@@ -1228,52 +2026,73 @@ destinationInput.addEventListener(
    Search Routes
 ======================================== */
 
-function isDirectRoute(
+function findDirectRouteMatch(
   route,
   startStop,
   destinationStop
 ) {
 
 
-  return startStop.nodeIds.some(
-
-    (startNodeId) => {
-
-
-      return destinationStop.nodeIds.some(
-
-        (destinationNodeId) => {
+  for (
+    const startNodeId of startStop.nodeIds
+  ) {
 
 
-          const startIndex =
-            route.platformIds.indexOf(
-              startNodeId
-            );
+    for (
+      const destinationNodeId of destinationStop.nodeIds
+    ) {
 
 
-          const destinationIndex =
-            route.platformIds.indexOf(
-              destinationNodeId
-            );
+      const startIndex =
+        route.platformIds.indexOf(
+          startNodeId
+        );
 
 
-          return (
+      const destinationIndex =
+        route.platformIds.indexOf(
+          destinationNodeId
+        );
 
-            startIndex !== -1 &&
 
-            destinationIndex !== -1 &&
+      if (
 
-            startIndex < destinationIndex
+        startIndex !== -1 &&
 
-          );
+        destinationIndex !== -1 &&
 
-        }
+        startIndex < destinationIndex
 
-      );
+      ) {
+
+
+        return {
+
+          route:
+            route,
+
+          startNodeId:
+            startNodeId,
+
+          destinationNodeId:
+            destinationNodeId,
+
+          startIndex:
+            startIndex,
+
+          destinationIndex:
+            destinationIndex
+
+        };
+
+      }
 
     }
 
-  );
+  }
+
+
+  return null;
 
 }
 
@@ -1281,7 +2100,7 @@ routeSearchButton.addEventListener(
 
   "click",
 
-  () => {
+  async () => {
 
 
     if (
@@ -1298,27 +2117,39 @@ routeSearchButton.addEventListener(
     }
 
 
+    const requestId =
+      ++routeSearchRequestId;
+
+
+    clearRoutePolyline();
+
+
     clearRouteResults();
 
 
-    const directRoutes =
+    const directRouteMatches =
 
-      ch52Routes.filter(
+      ch52Routes
+        .map(
 
         (route) =>
 
-          isDirectRoute(
+          findDirectRouteMatch(
             route,
             startBusStop,
             destinationBusStop
           )
 
-      );
+        )
+        .filter(Boolean);
 
 
     if (
-      directRoutes.length === 0
+      directRouteMatches.length === 0
     ) {
+
+
+      showAllBusStops();
 
 
       const noResult =
@@ -1345,9 +2176,20 @@ routeSearchButton.addEventListener(
     }
 
 
-    directRoutes.forEach(
+    showBusStopsForRoute(
+      directRouteMatches[0].route,
+      startBusStop,
+      destinationBusStop
+    );
 
-      (route) => {
+
+    directRouteMatches.forEach(
+
+      (routeMatch) => {
+
+
+        const route =
+          routeMatch.route;
 
 
         const result =
@@ -1405,6 +2247,37 @@ routeSearchButton.addEventListener(
       }
 
     );
+
+
+    try {
+
+
+      await showRouteGeometry(
+        directRouteMatches[0],
+        startBusStop,
+        destinationBusStop,
+        requestId
+      );
+
+    }
+
+
+    catch (error) {
+
+
+      if (
+        requestId === routeSearchRequestId
+      ) {
+
+
+        console.error(
+          "Could not display route geometry.",
+          error
+        );
+
+      }
+
+    }
 
   }
 
