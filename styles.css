@@ -1,0 +1,500 @@
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#map {
+  width: 100%;
+  height: 100vh;
+}
+
+
+/* ========================================
+   Bus Stop Marker
+======================================== */
+
+.bus-stop-marker {
+  width: 22px;
+  height: 22px;
+
+  background-color: #1976d2;
+  color: white;
+
+  border: 2px solid white;
+  border-radius: 50%;
+
+  box-shadow:
+    0 1px 4px
+    rgba(0, 0, 0, 0.45);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 14px;
+  font-weight: bold;
+
+  box-sizing: content-box;
+}
+
+/* ========================================
+   Top Search Panel
+======================================== */
+
+#search-panel {
+  position: absolute;
+
+  top: 10px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  z-index: 1000;
+
+  width: 90%;
+  max-width: 500px;
+
+  background: white;
+
+  padding: 10px;
+
+  border-radius: 8px;
+
+  box-shadow:
+    0 2px 8px
+    rgba(0, 0, 0, 0.3);
+}
+
+
+#place-search-row {
+  display: flex;
+  width: 100%;
+}
+
+
+#place-search {
+  flex: 1;
+
+  padding: 9px;
+
+  font-size: 16px;
+
+  box-sizing: border-box;
+}
+
+
+#search-button {
+  width: 50px;
+
+  font-size: 16px;
+
+  cursor: pointer;
+}
+
+
+#search-results {
+  background: white;
+
+  max-height: 200px;
+
+  overflow-y: auto;
+}
+
+
+.search-result {
+  padding: 8px;
+
+  border-bottom: 1px solid #ddd;
+
+  cursor: pointer;
+}
+
+
+.search-result:hover {
+  background: #eee;
+}
+
+
+/* ========================================
+   Bottom Container
+======================================== */
+
+#bottom-container {
+  position: absolute;
+
+  bottom: 15px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  z-index: 1000;
+
+  width: 90%;
+  max-width: 500px;
+
+  background: white;
+
+  border-radius: 8px;
+
+  box-shadow:
+    0 2px 8px
+    rgba(0, 0, 0, 0.3);
+
+  overflow: visible;
+}
+
+
+/* ========================================
+   Toolbar
+======================================== */
+
+#bottom-toolbar {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 8px;
+
+  min-height: 46px;
+
+  box-sizing: border-box;
+}
+
+
+.tool-button {
+  width: 44px;
+  height: 44px;
+
+  border: 1px solid #aaa;
+  border-radius: 6px;
+
+  background: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 0;
+
+  cursor: pointer;
+
+  flex-shrink: 0;
+}
+
+
+.tool-button:hover {
+  background: #f2f2f2;
+}
+
+
+#toolbar-space {
+  flex: 1;
+}
+
+
+/* ========================================
+   Bus Stop Toggle
+======================================== */
+
+#bus-stop-toggle {
+  position: relative;
+}
+
+
+.toolbar-bus-marker {
+  position: relative;
+
+  width: 22px;
+  height: 22px;
+
+  background-color: #1976d2;
+  color: white;
+
+  border: 2px solid white;
+  border-radius: 50%;
+
+  box-shadow:
+    0 1px 4px
+    rgba(0, 0, 0, 0.45);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 14px;
+  font-weight: bold;
+}
+
+
+#bus-stop-toggle.hide-action
+.toolbar-bus-marker::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 32px;
+  height: 3px;
+
+  background: black;
+
+  border-radius: 2px;
+
+  transform:
+    translate(-50%, -50%)
+    rotate(-45deg);
+
+  z-index: 10;
+
+  pointer-events: none;
+}
+
+
+/* ========================================
+   Collapse Button
+======================================== */
+
+#panel-toggle {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+
+/* ========================================
+   Route Panel
+======================================== */
+
+#route-panel {
+  padding:
+    0 10px 10px 10px;
+
+  border-top:
+    1px solid #ddd;
+}
+
+
+#route-panel.closed {
+  display: none;
+}
+
+
+.bus-input-row {
+  display: flex;
+  align-items: center;
+
+  margin-top: 10px;
+
+  position: relative;
+}
+
+
+.bus-input-label {
+  width: 95px;
+
+  font-weight: bold;
+
+  flex-shrink: 0;
+}
+
+
+.bus-input-wrapper {
+  flex: 1;
+
+  position: relative;
+}
+
+
+.bus-input {
+  width: 100%;
+
+  padding: 9px;
+
+  font-size: 15px;
+
+  box-sizing: border-box;
+}
+
+
+.route-direction-arrow {
+  width: calc(100% - 95px);
+
+  margin:
+    1px 0
+    7px 95px;
+
+  color: #555;
+
+  text-align: center;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+
+.bus-input-row.after-direction-arrow {
+  margin-top: 0;
+}
+
+
+/* ========================================
+   Bus Stop Suggestions
+======================================== */
+
+.bus-suggestions {
+  position: absolute;
+
+  bottom: 100%;
+
+  left: 0;
+  right: 0;
+
+  background: white;
+
+  border: 1px solid #ccc;
+
+  max-height: 200px;
+
+  overflow-y: auto;
+
+  z-index: 3000;
+}
+
+
+.bus-suggestion {
+  padding: 8px;
+
+  border-bottom:
+    1px solid #ddd;
+
+  cursor: pointer;
+}
+
+
+.bus-suggestion:hover {
+  background: #eee;
+}
+
+
+/* ========================================
+   Popup
+======================================== */
+
+.popup-button {
+  display: block;
+
+  width: 100%;
+
+  padding: 7px;
+
+  margin-top: 5px;
+
+  cursor: pointer;
+}
+
+
+/* ========================================
+   Search Routes
+======================================== */
+
+#route-search-button {
+  width: 100%;
+
+  margin-top: 12px;
+
+  padding: 10px;
+
+  font-size: 16px;
+  font-weight: bold;
+
+  cursor: pointer;
+}
+
+
+#route-search-button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.5;
+}
+
+
+#route-results:not(:empty) {
+  margin-top: 8px;
+}
+
+
+.route-result {
+  padding: 9px;
+
+  background: #eef5fc;
+
+  border: 1px solid #b8d4ee;
+  border-radius: 6px;
+
+  text-align: center;
+}
+
+
+.route-result-number {
+  color: #1565c0;
+
+  font-size: 18px;
+  font-weight: bold;
+}
+
+
+.route-result-direction {
+  margin-top: 3px;
+
+  color: #333;
+
+  font-size: 14px;
+}
+
+
+.route-no-result {
+  padding: 8px;
+
+  color: #555;
+
+  text-align: center;
+  font-size: 14px;
+}
+
+
+/* ========================================
+   Smartphone
+======================================== */
+
+@media (max-width: 600px) {
+
+  #search-panel {
+    width: calc(100% - 30px);
+  }
+
+  #bottom-container {
+    width: calc(100% - 20px);
+
+    bottom: 10px;
+  }
+
+  .bus-input-label {
+    width: 90px;
+
+    font-size: 14px;
+  }
+
+  .bus-input {
+    font-size: 14px;
+  }
+
+  .route-direction-arrow {
+    width: calc(100% - 90px);
+    margin-left: 90px;
+  }
+
+}
