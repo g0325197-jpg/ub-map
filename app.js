@@ -84,11 +84,11 @@ let routePolyline =
   null;
 
 
-let ch52GeometryByRelationId =
+let routesData =
   null;
 
 
-let ch52GeometryPromise =
+let routesDataPromise =
   null;
 
 
@@ -119,27 +119,27 @@ function clearRoutePolyline() {
 
 
 
-async function loadCh52Geometry() {
+async function loadRoutesData() {
 
 
   if (
-    ch52GeometryByRelationId
+    routesData
   ) {
 
 
-    return ch52GeometryByRelationId;
+    return routesData;
 
   }
 
 
   if (
-    !ch52GeometryPromise
+    !routesDataPromise
   ) {
 
 
-    ch52GeometryPromise =
+    routesDataPromise =
       fetch(
-        "./data/routes/ch52-geometry.json"
+        "./data/routes/routes-osm.json"
       )
         .then(
 
@@ -182,18 +182,7 @@ async function loadCh52Geometry() {
             }
 
 
-            return new Map(
-
-              data.routes.map(
-
-                (route) => [
-                  route.relationId,
-                  route
-                ]
-
-              )
-
-            );
+            return data.routes;
 
           }
 
@@ -205,11 +194,11 @@ async function loadCh52Geometry() {
   try {
 
 
-    ch52GeometryByRelationId =
-      await ch52GeometryPromise;
+    routesData =
+      await routesDataPromise;
 
 
-    return ch52GeometryByRelationId;
+    return routesData;
 
   }
 
@@ -217,7 +206,7 @@ async function loadCh52Geometry() {
   catch (error) {
 
 
-    ch52GeometryPromise =
+    routesDataPromise =
       null;
 
 
@@ -284,10 +273,7 @@ function getClosestRoutePoint(
 
   const stopPoint =
     L.CRS.EPSG3857.project(
-      L.latLng(
-        stop.lat,
-        stop.lng
-      )
+      L.latLng(stop.lat, stop.lng)
     );
 
 
@@ -319,8 +305,7 @@ function getClosestRoutePoint(
 
 
     const segmentLengthSquared =
-      deltaX * deltaX +
-      deltaY * deltaY;
+      deltaX * deltaX + deltaY * deltaY;
 
 
     const position =
@@ -349,21 +334,13 @@ function getClosestRoutePoint(
 
 
     const distanceSquared =
-      Math.pow(
-        stopPoint.x - projectedPoint.x,
-        2
-      ) +
-      Math.pow(
-        stopPoint.y - projectedPoint.y,
-        2
-      );
+      Math.pow(stopPoint.x - projectedPoint.x, 2) +
+      Math.pow(stopPoint.y - projectedPoint.y, 2);
 
 
     if (
       !closestPoint ||
-
-      distanceSquared <
-        closestPoint.distanceSquared
+      distanceSquared < closestPoint.distanceSquared
     ) {
 
 
@@ -374,21 +351,10 @@ function getClosestRoutePoint(
 
 
       closestPoint = {
-
-        segmentIndex:
-          index,
-
-        position:
-          position,
-
-        distanceSquared:
-          distanceSquared,
-
-        coordinate: [
-          latLng.lat,
-          latLng.lng
-        ]
-
+        segmentIndex: index,
+        position: position,
+        distanceSquared: distanceSquared,
+        coordinate: [latLng.lat, latLng.lng]
       };
 
     }
@@ -411,15 +377,10 @@ function getRouteSegmentCoordinates(
 
   const projectedCoordinates =
     coordinates.map(
-
       (coordinate) =>
         L.CRS.EPSG3857.project(
-          L.latLng(
-            coordinate[0],
-            coordinate[1]
-          )
+          L.latLng(coordinate[0], coordinate[1])
         )
-
     );
 
 
@@ -441,9 +402,7 @@ function getRouteSegmentCoordinates(
 
   if (
     !startPoint ||
-
     !destinationPoint ||
-
     startPoint.segmentIndex + startPoint.position >
       destinationPoint.segmentIndex + destinationPoint.position
   ) {
@@ -481,52 +440,22 @@ function getRouteSegmentCoordinates(
 
 
   return segmentCoordinates.filter(
-
-    (coordinate, index) => {
-
-
-      if (
-        index === 0
-      ) {
-
-
-        return true;
-
-      }
-
-
-      const previousCoordinate =
-        segmentCoordinates[index - 1];
-
-
-      return (
-
-        coordinate[0] !==
-          previousCoordinate[0] ||
-
-        coordinate[1] !==
-          previousCoordinate[1]
-
-      );
-
-    }
-
+    (coordinate, index) =>
+      index === 0 ||
+      coordinate[0] !== segmentCoordinates[index - 1][0] ||
+      coordinate[1] !== segmentCoordinates[index - 1][1]
   );
 
 }
 
 
 
-async function showRouteGeometry(
-  routeMatch,
+function showRouteGeometry(
+  route,
   startStop,
   destinationStop,
   requestId
 ) {
-
-
-  const geometryByRelationId =
-    await loadCh52Geometry();
 
 
   if (
@@ -539,25 +468,17 @@ async function showRouteGeometry(
   }
 
 
-  const routeGeometry =
-    geometryByRelationId.get(
-      routeMatch.route.relationId
-    );
-
-
   if (
-    !routeGeometry ||
-
     !Array.isArray(
-      routeGeometry.coordinates
+      route.coordinates
     ) ||
 
-    routeGeometry.coordinates.length < 2
+    route.coordinates.length < 2
   ) {
 
 
     throw new Error(
-      `Route geometry not found: ${routeMatch.route.relationId}`
+      `Route geometry not found: ${route.relationId}`
     );
 
   }
@@ -565,7 +486,7 @@ async function showRouteGeometry(
 
   const segmentCoordinates =
     getRouteSegmentCoordinates(
-      routeGeometry.coordinates,
+      route.coordinates,
       startStop,
       destinationStop
     );
@@ -579,7 +500,7 @@ async function showRouteGeometry(
 
       L.polyline(
 
-        routeGeometry.coordinates,
+        route.coordinates,
 
         {
 
@@ -607,7 +528,6 @@ async function showRouteGeometry(
         }
 
       ),
-
 
       L.polyline(
 
@@ -686,7 +606,6 @@ async function showRouteGeometry(
   );
 
 }
-
 
 
 /* ========================================
@@ -835,7 +754,137 @@ const busStopLayer =
     .addTo(map);
 
 
+let focusedBusStop =
+  null;
+
+
+let activeRouteStartStop =
+  null;
+
+
+let activeRouteDestinationStop =
+  null;
+
+
+
+function isHighlightedBusStop(
+  stop
+) {
+
+
+  return (
+
+    stop === focusedBusStop ||
+
+    stop === activeRouteStartStop ||
+
+    stop === activeRouteDestinationStop
+
+  );
+
+}
+
+
+
+function updateBusStopMarkerIcon(
+  stop
+) {
+
+
+  if (
+    !stop ||
+    !stop.marker
+  ) {
+
+
+    return;
+
+  }
+
+
+  stop.marker.setIcon(
+
+    isHighlightedBusStop(stop)
+
+      ? routeEndpointBusStopIcon
+
+      : busStopIcon
+
+  );
+
+}
+
+
+
+function setFocusedBusStop(
+  stop
+) {
+
+
+  const previousFocusedBusStop =
+    focusedBusStop;
+
+
+  focusedBusStop =
+    stop;
+
+
+  if (
+    previousFocusedBusStop &&
+    previousFocusedBusStop !== stop
+  ) {
+
+
+    updateBusStopMarkerIcon(
+      previousFocusedBusStop
+    );
+
+  }
+
+
+  updateBusStopMarkerIcon(
+    stop
+  );
+
+}
+
+
+
+function clearFocusedBusStop(
+  stop
+) {
+
+
+  if (
+    focusedBusStop !== stop
+  ) {
+
+
+    return;
+
+  }
+
+
+  focusedBusStop =
+    null;
+
+
+  updateBusStopMarkerIcon(
+    stop
+  );
+
+}
+
+
 function showAllBusStops() {
+
+
+  activeRouteStartStop =
+    null;
+
+
+  activeRouteDestinationStop =
+    null;
 
 
   busStopLayer.clearLayers();
@@ -851,8 +900,8 @@ function showAllBusStops() {
       ) {
 
 
-        stop.marker.setIcon(
-          busStopIcon
+        updateBusStopMarkerIcon(
+          stop
         );
 
 
@@ -877,9 +926,17 @@ function showBusStopsForRoute(
 ) {
 
 
+  activeRouteStartStop =
+    startStop;
+
+
+  activeRouteDestinationStop =
+    destinationStop;
+
+
   const platformIds =
     new Set(
-      route.platformIds
+      route.stops
     );
 
 
@@ -907,8 +964,8 @@ function showBusStopsForRoute(
       ) {
 
 
-        stop.marker.setIcon(
-          busStopIcon
+        updateBusStopMarkerIcon(
+          stop
         );
 
       }
@@ -931,29 +988,6 @@ function showBusStopsForRoute(
 
   );
 
-
-  [
-    startStop,
-    destinationStop
-  ].forEach(
-
-    (stop) => {
-
-
-      if (
-        stop.marker
-      ) {
-
-
-        stop.marker.setIcon(
-          routeEndpointBusStopIcon
-        );
-
-      }
-
-    }
-
-  );
 
 }
 
@@ -1149,80 +1183,6 @@ let zaisanStopLoaded =
   false;
 
 
-const ch52Routes = [
-
-  {
-
-    relationId:
-      20961296,
-
-    routeNumber:
-      "Ч:52",
-
-    from:
-      "Зайсан",
-
-    to:
-      "Дүүхээ дэлгүүр",
-
-    platformIds: [
-      1400358994,
-      13915131455,
-      13915417487,
-      13915417488,
-      13926195612,
-      1255473522,
-      1193607633,
-      1241686912,
-      13926195613,
-      1707027495,
-      2531768741,
-      1601426940,
-      3912937179,
-      5931237085,
-      2531768745,
-      11063192121,
-      11063192120
-    ]
-
-  },
-
-  {
-
-    relationId:
-      20961297,
-
-    routeNumber:
-      "Ч:52",
-
-    from:
-      "Дүүхээ дэлгүүр",
-
-    to:
-      "Зайсан",
-
-    platformIds: [
-      11063192123,
-      2321375414,
-      2531768538,
-      2321375421,
-      2531768740,
-      1707027426,
-      750022312,
-      3023597332,
-      1193607646,
-      1255473563,
-      1601411404,
-      9157069767,
-      13915131456,
-      1400358994
-    ]
-
-  }
-
-];
-
-
 let startBusStop =
   null;
 
@@ -1268,6 +1228,34 @@ const routeResults =
   );
 
 
+const routeSearchForm =
+  document.getElementById(
+    "route-search-form"
+  );
+
+
+const routeResultsHeader =
+  document.getElementById(
+    "route-results-header"
+  );
+
+
+const routeResultsSummary =
+  document.getElementById(
+    "route-results-summary"
+  );
+
+
+const routeBackButton =
+  document.getElementById(
+    "route-back-button"
+  );
+
+
+let routeResultsMode =
+  false;
+
+
 
 function clearRouteResults() {
 
@@ -1276,6 +1264,81 @@ function clearRouteResults() {
     "";
 
 }
+
+
+
+function setRouteResultsMode(
+  enabled,
+  startStop = startBusStop,
+  destinationStop = destinationBusStop
+) {
+
+
+  routeResultsMode =
+    enabled;
+
+
+  routeSearchForm.hidden =
+    enabled;
+
+
+  routeResultsHeader.hidden =
+    !enabled;
+
+
+  routePanel.classList.toggle(
+    "results-mode",
+    enabled
+  );
+
+
+  routeResultsSummary.textContent =
+
+    enabled &&
+    startStop &&
+    destinationStop
+
+      ? `${startStop.displayName} → ${destinationStop.displayName}`
+
+      : "";
+
+}
+
+
+
+function returnToRouteSearchMode() {
+
+
+  routeSearchRequestId++;
+
+
+  clearRoutePolyline();
+
+
+  showAllBusStops();
+
+
+  clearRouteResults();
+
+
+  setRouteResultsMode(
+    false
+  );
+
+
+  updateRouteSearchButton();
+
+}
+
+
+
+routeBackButton.addEventListener(
+
+  "click",
+
+  returnToRouteSearchMode
+
+);
 
 
 
@@ -1306,7 +1369,22 @@ function setBusStop(
 ) {
 
 
-  clearRouteResults();
+  if (
+    routeResultsMode
+  ) {
+
+
+    returnToRouteSearchMode();
+
+  }
+
+
+  else {
+
+
+    clearRouteResults();
+
+  }
 
 
   if (
@@ -1686,6 +1764,10 @@ async function loadBusStops() {
         );
 
 
+        stop.marker =
+          marker;
+
+
         marker
 
           .addTo(
@@ -1697,8 +1779,36 @@ async function loadBusStops() {
           );
 
 
-        stop.marker =
-          marker;
+        marker.on(
+
+          "popupopen",
+
+          () => {
+
+
+            setFocusedBusStop(
+              stop
+            );
+
+          }
+
+        );
+
+
+        marker.on(
+
+          "popupclose",
+
+          () => {
+
+
+            clearFocusedBusStop(
+              stop
+            );
+
+          }
+
+        );
 
 
         count++;
@@ -2044,13 +2154,13 @@ function findDirectRouteMatch(
 
 
       const startIndex =
-        route.platformIds.indexOf(
+        route.stops.indexOf(
           startNodeId
         );
 
 
       const destinationIndex =
-        route.platformIds.indexOf(
+        route.stops.indexOf(
           destinationNodeId
         );
 
@@ -2117,6 +2227,14 @@ routeSearchButton.addEventListener(
     }
 
 
+    const selectedStartStop =
+      startBusStop;
+
+
+    const selectedDestinationStop =
+      destinationBusStop;
+
+
     const requestId =
       ++routeSearchRequestId;
 
@@ -2124,32 +2242,138 @@ routeSearchButton.addEventListener(
     clearRoutePolyline();
 
 
+    showAllBusStops();
+
+
     clearRouteResults();
+
+
+    routeSearchButton.disabled =
+      true;
+
+
+    let routes;
+
+
+    try {
+
+
+      routes =
+        await loadRoutesData();
+
+    }
+
+
+    catch (error) {
+
+
+      if (
+        requestId !== routeSearchRequestId
+      ) {
+
+
+        return;
+
+      }
+
+
+      const errorResult =
+        document.createElement(
+          "div"
+        );
+
+
+      errorResult.className =
+        "route-no-result";
+
+
+      errorResult.textContent =
+        "Route data could not be loaded.";
+
+
+      routeResults.appendChild(
+        errorResult
+      );
+
+
+      console.error(
+        "Could not load route data.",
+        error
+      );
+
+
+      updateRouteSearchButton();
+
+
+      return;
+
+    }
+
+
+    if (
+
+      requestId !== routeSearchRequestId ||
+
+      startBusStop !== selectedStartStop ||
+
+      destinationBusStop !== selectedDestinationStop
+
+    ) {
+
+
+      updateRouteSearchButton();
+
+
+      return;
+
+    }
 
 
     const directRouteMatches =
 
-      ch52Routes
+      routes
         .map(
 
-        (route) =>
+          (route) =>
 
-          findDirectRouteMatch(
-            route,
-            startBusStop,
-            destinationBusStop
-          )
+            findDirectRouteMatch(
+              route,
+              selectedStartStop,
+              selectedDestinationStop
+            )
 
         )
-        .filter(Boolean);
+        .filter(Boolean)
+        .sort(
+
+          (left, right) =>
+            left.route.ref.localeCompare(
+              right.route.ref,
+              undefined,
+              {
+                numeric: true,
+                sensitivity: "base"
+              }
+            )
+
+            ||
+
+            left.route.relationId -
+              right.route.relationId
+
+        );
+
+
+    setRouteResultsMode(
+      true,
+      selectedStartStop,
+      selectedDestinationStop
+    );
 
 
     if (
       directRouteMatches.length === 0
     ) {
-
-
-      showAllBusStops();
 
 
       const noResult =
@@ -2171,16 +2395,88 @@ routeSearchButton.addEventListener(
       );
 
 
+      updateRouteSearchButton();
+
+
       return;
 
     }
 
 
-    showBusStopsForRoute(
-      directRouteMatches[0].route,
-      startBusStop,
-      destinationBusStop
-    );
+    const resultItems =
+      [];
+
+
+    const selectRouteResult =
+      (routeMatch, selectedResult) => {
+
+
+        if (
+          requestId !== routeSearchRequestId
+        ) {
+
+
+          return;
+
+        }
+
+
+        resultItems.forEach(
+
+          (item) => {
+
+
+            const isSelected =
+              item.element === selectedResult;
+
+
+            item.element.classList.toggle(
+              "selected",
+              isSelected
+            );
+
+
+            item.element.setAttribute(
+              "aria-pressed",
+              String(isSelected)
+            );
+
+          }
+
+        );
+
+
+        showBusStopsForRoute(
+          routeMatch.route,
+          selectedStartStop,
+          selectedDestinationStop
+        );
+
+
+        try {
+
+
+          showRouteGeometry(
+            routeMatch.route,
+            selectedStartStop,
+            selectedDestinationStop,
+            requestId
+          );
+
+        }
+
+
+        catch (error) {
+
+
+          console.error(
+            "Could not display route geometry.",
+            error
+          );
+
+        }
+
+      };
 
 
     directRouteMatches.forEach(
@@ -2194,12 +2490,22 @@ routeSearchButton.addEventListener(
 
         const result =
           document.createElement(
-            "div"
+            "button"
           );
+
+
+        result.type =
+          "button";
 
 
         result.className =
           "route-result";
+
+
+        result.setAttribute(
+          "aria-pressed",
+          "false"
+        );
 
 
         const routeNumber =
@@ -2213,7 +2519,7 @@ routeSearchButton.addEventListener(
 
 
         routeNumber.textContent =
-          route.routeNumber;
+          route.ref;
 
 
         const direction =
@@ -2240,49 +2546,50 @@ routeSearchButton.addEventListener(
         );
 
 
+        result.addEventListener(
+
+          "click",
+
+          () => {
+
+
+            selectRouteResult(
+              routeMatch,
+              result
+            );
+
+          }
+
+        );
+
+
         routeResults.appendChild(
           result
         );
+
+
+        resultItems.push({
+          element: result,
+          routeMatch: routeMatch
+        });
 
       }
 
     );
 
 
-    try {
+    selectRouteResult(
+      resultItems[0].routeMatch,
+      resultItems[0].element
+    );
 
 
-      await showRouteGeometry(
-        directRouteMatches[0],
-        startBusStop,
-        destinationBusStop,
-        requestId
-      );
-
-    }
-
-
-    catch (error) {
-
-
-      if (
-        requestId === routeSearchRequestId
-      ) {
-
-
-        console.error(
-          "Could not display route geometry.",
-          error
-        );
-
-      }
-
-    }
+    updateRouteSearchButton();
 
   }
 
-);
 
+); 
 
 
 /* ========================================
