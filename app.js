@@ -1,4 +1,145 @@
 /* ========================================
+   Translations
+======================================== */
+
+const translations = {
+
+  en: {
+    searchPlace: "Search place...",
+    searchPlaceButton: "Search place",
+    startLabel: "Start:",
+    destinationLabel: "Destination:",
+    busStopPlaceholder: "select a map pin or Enter bus stop name",
+    searchRoutes: "Search Routes",
+    setAsStart: "Set as Start",
+    setAsDestination: "Set as Destination",
+    unnamedBusStop: "Unnamed Bus Stop",
+    noBusStopsFound: "No bus stops found",
+    routeDataLoadError: "Route data could not be loaded.",
+    noDirectRoute: "No direct route found.",
+    searching: "Searching...",
+    noPlaceResults: "No results found",
+    placeSearchFailed: "Search failed",
+    currentLocation: "Current Location",
+    goToCurrentLocation: "Go to current location",
+    showBusStops: "Show bus stops",
+    hideBusStops: "Hide bus stops",
+    openRouteSearch: "Open route search",
+    closeRouteSearch: "Close route search",
+    backToRouteSearch: "Back to route search",
+    switchLanguage: "Switch to Mongolian",
+    busStopDataLoadError: "Could not load bus stop data."
+  },
+
+  mn: {
+    searchPlace: "Газар хайх...",
+    searchPlaceButton: "Газар хайх",
+    startLabel: "Эхлэх:",
+    destinationLabel: "Очих газар:",
+    busStopPlaceholder: "Газрын зураг эсвэл буудлын нэрээс сонгоно уу",
+    searchRoutes: "Маршрут хайх",
+    setAsStart: "Эхлэх цэг болгох",
+    setAsDestination: "Очих цэг болгох",
+    unnamedBusStop: "Нэргүй автобусны буудал",
+    noBusStopsFound: "Автобусны буудал олдсонгүй",
+    routeDataLoadError: "Маршрутын өгөгдлийг ачаалж чадсангүй.",
+    noDirectRoute: "Шууд маршрут олдсонгүй.",
+    searching: "Хайж байна...",
+    noPlaceResults: "Илэрц олдсонгүй",
+    placeSearchFailed: "Хайлт амжилтгүй боллоо",
+    currentLocation: "Одоогийн байршил",
+    goToCurrentLocation: "Одоогийн байршил руу очих",
+    showBusStops: "Автобусны буудлуудыг харуулах",
+    hideBusStops: "Автобусны буудлуудыг нуух",
+    openRouteSearch: "Маршрут хайлтыг нээх",
+    closeRouteSearch: "Маршрут хайлтыг хаах",
+    backToRouteSearch: "Маршрут хайлт руу буцах",
+    switchLanguage: "Англи хэл рүү шилжих",
+    busStopDataLoadError: "Автобусны буудлын өгөгдлийг ачаалж чадсангүй."
+  }
+
+};
+
+
+let currentLanguage =
+  "en";
+
+
+function translate(
+  key
+) {
+
+
+  return (
+    translations[currentLanguage][key] ||
+    translations.en[key] ||
+    key
+  );
+
+}
+
+
+function updateTranslatedElements(
+  root = document
+) {
+
+
+  root.querySelectorAll(
+    "[data-i18n]"
+  ).forEach(
+
+    (element) => {
+
+
+      element.textContent =
+        translate(
+          element.dataset.i18n
+        );
+
+    }
+
+  );
+
+
+  root.querySelectorAll(
+    "[data-i18n-placeholder]"
+  ).forEach(
+
+    (element) => {
+
+
+      element.placeholder =
+        translate(
+          element.dataset.i18nPlaceholder
+        );
+
+    }
+
+  );
+
+
+  root.querySelectorAll(
+    "[data-i18n-aria-label]"
+  ).forEach(
+
+    (element) => {
+
+
+      element.setAttribute(
+        "aria-label",
+        translate(
+          element.dataset.i18nAriaLabel
+        )
+      );
+
+    }
+
+  );
+
+}
+
+
+/* ========================================
    Map
 ======================================== */
 
@@ -637,66 +778,123 @@ L.icon({
 
 
 
-navigator.geolocation.getCurrentPosition(
-
-  (position) => {
-
-
-    const lat =
-      position.coords.latitude;
+let currentLocationMarker =
+  null;
 
 
-    const lng =
-      position.coords.longitude;
+const currentLocationOptions = {
+
+  enableHighAccuracy: true,
+
+  timeout: 10000,
+
+  maximumAge: 0
+
+};
 
 
-    L.marker(
-      [lat, lng],
-      {
-        icon:
-          currentLocationIcon
-      }
-    )
-
-      .addTo(map)
-
-      .bindPopup(
-        "Current Location"
-      );
+function showCurrentLocation(
+  position
+) {
 
 
-    map.setView(
-      [lat, lng],
-      16
+  const lat =
+    position.coords.latitude;
+
+
+  const lng =
+    position.coords.longitude;
+
+
+  if (
+    currentLocationMarker
+  ) {
+
+
+    currentLocationMarker.setLatLng(
+      [lat, lng]
     );
-
-  },
-
-
-  (error) => {
-
-    console.error(
-
-      "Could not get current location.",
-
-      error
-
-    );
-
-  },
-
-
-  {
-
-    enableHighAccuracy: true,
-
-    timeout: 10000,
-
-    maximumAge: 0
 
   }
 
+
+  else {
+
+
+    currentLocationMarker =
+      L.marker(
+        [lat, lng],
+        {
+          icon:
+            currentLocationIcon
+        }
+      )
+        .addTo(map)
+        .bindPopup(
+          translate(
+            "currentLocation"
+          )
+        );
+
+  }
+
+
+  map.setView(
+    [lat, lng],
+    16
+  );
+
+}
+
+
+function handleCurrentLocationError(
+  error
+) {
+
+
+  console.error(
+
+    "Could not get current location.",
+
+    error
+
+  );
+
+}
+
+
+function requestCurrentLocation() {
+
+
+  navigator.geolocation.getCurrentPosition(
+
+    showCurrentLocation,
+
+    handleCurrentLocationError,
+
+    currentLocationOptions
+
+  );
+
+}
+
+
+const currentLocationButton =
+  document.getElementById(
+    "current-location-button"
+  );
+
+
+currentLocationButton.addEventListener(
+
+  "click",
+
+  requestCurrentLocation
+
 );
+
+
+requestCurrentLocation();
 
 
 
@@ -744,6 +942,26 @@ const routeEndpointBusStopIcon =
   });
 
 
+const unreachableBusStopIcon =
+  L.divIcon({
+
+    className: "",
+
+    html:
+      '<div class="bus-stop-marker unreachable">B</div>',
+
+    iconSize:
+      [22, 22],
+
+    iconAnchor:
+      [11, 11],
+
+    popupAnchor:
+      [0, -11]
+
+  });
+
+
 
 /* ========================================
    Bus Stop Layer
@@ -766,6 +984,14 @@ let activeRouteDestinationStop =
   null;
 
 
+let reachableBusStopNodeIds =
+  null;
+
+
+let reachableBusStopsRequestId =
+  0;
+
+
 
 function isHighlightedBusStop(
   stop
@@ -775,6 +1001,10 @@ function isHighlightedBusStop(
   return (
 
     stop === focusedBusStop ||
+
+    stop === startBusStop ||
+
+    stop === destinationBusStop ||
 
     stop === activeRouteStartStop ||
 
@@ -802,15 +1032,273 @@ function updateBusStopMarkerIcon(
   }
 
 
-  stop.marker.setIcon(
+  let markerIcon =
+    busStopIcon;
 
+
+  let zIndexOffset =
+    0;
+
+
+  const hasReachableState =
+    startBusStop &&
+    reachableBusStopNodeIds instanceof Set;
+
+
+  const isReachableBusStop =
+    hasReachableState &&
+    stop.nodeIds.some(
+
+      (nodeId) =>
+        reachableBusStopNodeIds.has(
+          nodeId
+        )
+
+    );
+
+
+  if (
     isHighlightedBusStop(stop)
+  ) {
 
-      ? routeEndpointBusStopIcon
 
-      : busStopIcon
+    markerIcon =
+      routeEndpointBusStopIcon;
+
+
+    zIndexOffset =
+      3000;
+
+  }
+
+
+  else if (
+    !routeResultsMode &&
+    hasReachableState &&
+    !isReachableBusStop
+  ) {
+
+
+    markerIcon =
+      unreachableBusStopIcon;
+
+  }
+
+
+  else if (
+    isReachableBusStop
+  ) {
+
+
+    zIndexOffset =
+      2000;
+
+  }
+
+
+  stop.marker.setIcon(
+    markerIcon
+  );
+
+
+  stop.marker.setZIndexOffset(
+    zIndexOffset
+  );
+
+}
+
+
+
+function refreshBusStopMarkerIcons() {
+
+
+  busStops.forEach(
+
+    (stop) => {
+
+
+      updateBusStopMarkerIcon(
+        stop
+      );
+
+    }
 
   );
+
+}
+
+
+
+function clearReachableBusStopState() {
+
+
+  reachableBusStopsRequestId++;
+
+
+  reachableBusStopNodeIds =
+    null;
+
+
+  refreshBusStopMarkerIcons();
+
+}
+
+
+
+async function updateReachableBusStopsForStart(
+  selectedStartStop = startBusStop
+) {
+
+
+  const requestId =
+    ++reachableBusStopsRequestId;
+
+
+  reachableBusStopNodeIds =
+    null;
+
+
+  refreshBusStopMarkerIcons();
+
+
+  if (
+    !selectedStartStop ||
+    startBusStop !== selectedStartStop
+  ) {
+
+
+    return;
+
+  }
+
+
+  let routes;
+
+
+  try {
+
+
+    routes =
+      await loadRoutesData();
+
+  }
+
+
+  catch (error) {
+
+
+    if (
+      requestId !== reachableBusStopsRequestId ||
+      startBusStop !== selectedStartStop
+    ) {
+
+
+      return;
+
+    }
+
+
+    reachableBusStopNodeIds =
+      null;
+
+
+    refreshBusStopMarkerIcons();
+
+
+    console.error(
+      "Could not calculate directly reachable bus stops.",
+      error
+    );
+
+
+    return;
+
+  }
+
+
+  if (
+    requestId !== reachableBusStopsRequestId ||
+    startBusStop !== selectedStartStop
+  ) {
+
+
+    return;
+
+  }
+
+
+  const reachableNodeIds =
+    new Set();
+
+
+  routes.forEach(
+
+    (route) => {
+
+
+      selectedStartStop.nodeIds.forEach(
+
+        (startNodeId) => {
+
+
+          const startIndex =
+            route.stops.indexOf(
+              startNodeId
+            );
+
+
+          if (
+            startIndex === -1
+          ) {
+
+
+            return;
+
+          }
+
+
+          route.stops
+            .slice(
+              startIndex + 1
+            )
+            .forEach(
+
+              (nodeId) => {
+
+
+                reachableNodeIds.add(
+                  nodeId
+                );
+
+              }
+
+            );
+
+        }
+
+      );
+
+    }
+
+  );
+
+
+  if (
+    requestId !== reachableBusStopsRequestId ||
+    startBusStop !== selectedStartStop
+  ) {
+
+
+    return;
+
+  }
+
+
+  reachableBusStopNodeIds =
+    reachableNodeIds;
+
+
+  refreshBusStopMarkerIcons();
 
 }
 
@@ -1035,7 +1523,9 @@ busStopToggle.addEventListener(
 
         "aria-label",
 
-        "Show bus stops"
+        translate(
+          "showBusStops"
+        )
 
       );
 
@@ -1064,7 +1554,9 @@ busStopToggle.addEventListener(
 
         "aria-label",
 
-        "Hide bus stops"
+        translate(
+          "hideBusStops"
+        )
 
       );
 
@@ -1122,7 +1614,9 @@ panelToggle.addEventListener(
 
         "aria-label",
 
-        "Open route search"
+        translate(
+          "openRouteSearch"
+        )
 
       );
 
@@ -1149,7 +1643,9 @@ panelToggle.addEventListener(
 
         "aria-label",
 
-        "Close route search"
+        translate(
+          "closeRouteSearch"
+        )
 
       );
 
@@ -1256,6 +1752,163 @@ let routeResultsMode =
   false;
 
 
+const languageToggle =
+  document.getElementById(
+    "language-toggle"
+  );
+
+
+const languageToggleFlag =
+  document.getElementById(
+    "language-toggle-flag"
+  );
+
+
+const languageToggleCode =
+  document.getElementById(
+    "language-toggle-code"
+  );
+
+
+function applyLanguage() {
+
+
+  document.documentElement.lang =
+    currentLanguage;
+
+
+  updateTranslatedElements();
+
+
+  busStops.forEach(
+
+    (stop) => {
+
+
+      const popupContent =
+        stop.marker
+          ?.getPopup()
+          ?.getContent();
+
+
+      if (
+        popupContent instanceof Element
+      ) {
+
+
+        updateTranslatedElements(
+          popupContent
+        );
+
+      }
+
+    }
+
+  );
+
+
+  languageToggleFlag.textContent =
+    currentLanguage === "en"
+
+      ? "🇬🇧"
+
+      : "🇲🇳";
+
+
+  languageToggleCode.textContent =
+    currentLanguage === "en"
+
+      ? "EN"
+
+      : "MN";
+
+
+  languageToggle.setAttribute(
+    "aria-label",
+    translate(
+      "switchLanguage"
+    )
+  );
+
+
+  currentLocationButton.setAttribute(
+    "aria-label",
+    translate(
+      "goToCurrentLocation"
+    )
+  );
+
+
+  busStopToggle.setAttribute(
+    "aria-label",
+    translate(
+      busStopsVisible
+
+        ? "hideBusStops"
+
+        : "showBusStops"
+    )
+  );
+
+
+  panelToggle.setAttribute(
+    "aria-label",
+    translate(
+      routePanelOpen
+
+        ? "closeRouteSearch"
+
+        : "openRouteSearch"
+    )
+  );
+
+
+  routeBackButton.setAttribute(
+    "aria-label",
+    translate(
+      "backToRouteSearch"
+    )
+  );
+
+
+  if (
+    currentLocationMarker
+  ) {
+
+
+    currentLocationMarker.setPopupContent(
+      translate(
+        "currentLocation"
+      )
+    );
+
+  }
+
+}
+
+
+languageToggle.addEventListener(
+
+  "click",
+
+  () => {
+
+
+    currentLanguage =
+      currentLanguage === "en"
+
+        ? "mn"
+
+        : "en";
+
+
+    applyLanguage();
+
+  }
+
+);
+
+
 
 function clearRouteResults() {
 
@@ -1301,6 +1954,9 @@ function setRouteResultsMode(
       ? `${startStop.displayName} → ${destinationStop.displayName}`
 
       : "";
+
+
+  refreshBusStopMarkerIcons();
 
 }
 
@@ -1369,6 +2025,15 @@ function setBusStop(
 ) {
 
 
+  const previousBusStop =
+
+    type === "start"
+
+      ? startBusStop
+
+      : destinationBusStop;
+
+
   if (
     routeResultsMode
   ) {
@@ -1422,6 +2087,28 @@ function setBusStop(
 
     destinationSuggestions.innerHTML =
       "";
+
+  }
+
+
+  updateBusStopMarkerIcon(
+    previousBusStop
+  );
+
+
+  updateBusStopMarkerIcon(
+    stop
+  );
+
+
+  if (
+    type === "start"
+  ) {
+
+
+    updateReachableBusStopsForStart(
+      stop
+    );
 
   }
 
@@ -1579,7 +2266,9 @@ async function loadBusStops() {
 
           ||
 
-          "Unnamed Bus Stop";
+          translate(
+            "unnamedBusStop"
+          );
 
 
 
@@ -1690,8 +2379,14 @@ async function loadBusStops() {
           );
 
 
+        startButton.dataset.i18n =
+          "setAsStart";
+
+
         startButton.textContent =
-          "Set as Start";
+          translate(
+            "setAsStart"
+          );
 
 
         startButton.className =
@@ -1725,8 +2420,14 @@ async function loadBusStops() {
           );
 
 
+        destinationButton.dataset.i18n =
+          "setAsDestination";
+
+
         destinationButton.textContent =
-          "Set as Destination";
+          translate(
+            "setAsDestination"
+          );
 
 
         destinationButton.className =
@@ -1837,7 +2538,13 @@ async function loadBusStops() {
 
     alert(
 
-      "Could not load bus stop data.\n"
+      translate(
+        "busStopDataLoadError"
+      )
+
+      +
+
+      "\n"
 
       +
 
@@ -1948,8 +2655,14 @@ function searchBusStops(
       "bus-suggestion";
 
 
+    noResult.dataset.i18n =
+      "noBusStopsFound";
+
+
     noResult.textContent =
-      "No bus stops found";
+      translate(
+        "noBusStopsFound"
+      );
 
 
     resultElement.appendChild(
@@ -2059,6 +2772,9 @@ startInput.addEventListener(
         null;
 
 
+      clearReachableBusStopState();
+
+
       clearRouteResults();
 
 
@@ -2104,8 +2820,17 @@ destinationInput.addEventListener(
     ) {
 
 
+      const previousDestinationBusStop =
+        destinationBusStop;
+
+
       destinationBusStop =
         null;
+
+
+      updateBusStopMarkerIcon(
+        previousDestinationBusStop
+      );
 
 
       clearRouteResults();
@@ -2287,8 +3012,14 @@ routeSearchButton.addEventListener(
         "route-no-result";
 
 
+      errorResult.dataset.i18n =
+        "routeDataLoadError";
+
+
       errorResult.textContent =
-        "Route data could not be loaded.";
+        translate(
+          "routeDataLoadError"
+        );
 
 
       routeResults.appendChild(
@@ -2386,8 +3117,14 @@ routeSearchButton.addEventListener(
         "route-no-result";
 
 
+      noResult.dataset.i18n =
+        "noDirectRoute";
+
+
       noResult.textContent =
-        "No direct route found.";
+        translate(
+          "noDirectRoute"
+        );
 
 
       routeResults.appendChild(
@@ -2645,6 +3382,42 @@ const searchPlaceIcon =
   });
 
 
+function showPlaceSearchStatus(
+  translationKey
+) {
+
+
+  searchResults.innerHTML =
+    "";
+
+
+  const status =
+    document.createElement(
+      "div"
+    );
+
+
+  status.className =
+    "search-result";
+
+
+  status.dataset.i18n =
+    translationKey;
+
+
+  status.textContent =
+    translate(
+      translationKey
+    );
+
+
+  searchResults.appendChild(
+    status
+  );
+
+}
+
+
 
 async function searchPlace() {
 
@@ -2662,9 +3435,9 @@ async function searchPlace() {
   }
 
 
-  searchResults.innerHTML =
-
-    "<div class='search-result'>Searching...</div>";
+  showPlaceSearchStatus(
+    "searching"
+  );
 
 
 
@@ -2729,9 +3502,9 @@ async function searchPlace() {
     ) {
 
 
-      searchResults.innerHTML =
-
-        "<div class='search-result'>No results found</div>";
+      showPlaceSearchStatus(
+        "noPlaceResults"
+      );
 
 
       return;
@@ -2850,9 +3623,9 @@ async function searchPlace() {
     );
 
 
-    searchResults.innerHTML =
-
-      "<div class='search-result'>Search failed</div>";
+    showPlaceSearchStatus(
+      "placeSearchFailed"
+    );
 
   }
 
@@ -2888,3 +3661,6 @@ searchInput.addEventListener(
   }
 
 );
+
+
+applyLanguage();

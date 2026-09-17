@@ -40,9 +40,14 @@
         type="text"
         id="place-search"
         placeholder="Search place..."
+        data-i18n-placeholder="searchPlace"
       >
 
-      <button id="search-button">
+      <button
+        id="search-button"
+        aria-label="Search place"
+        data-i18n-aria-label="searchPlaceButton"
+      >
         🔍
       </button>
 
@@ -79,6 +84,58 @@
           B
         </div>
 
+      </button>
+
+
+      <!-- Current Location -->
+
+      <button
+        id="current-location-button"
+        class="tool-button"
+        type="button"
+        aria-label="Go to current location"
+      >
+
+        <svg
+        class="toolbar-location-icon"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        focusable="false"
+        >
+        <path
+            d="M12 21s6-5.3 6-11a6 6 0 1 0-12 0c0 5.7 6 11 6 11Z"
+        ></path>
+
+        <circle
+            cx="12"
+            cy="10"
+            r="2.2"
+            fill="white"
+            stroke="none"
+        ></circle>
+        </svg>
+
+      </button>
+
+
+      <!-- Language -->
+
+      <button
+        id="language-toggle"
+        class="tool-button"
+        type="button"
+        aria-label="Switch to Mongolian"
+      >
+        <span
+          id="language-toggle-flag"
+          class="language-toggle-flag"
+          aria-hidden="true"
+        >🇬🇧</span>
+
+        <span
+          id="language-toggle-code"
+          class="language-toggle-code"
+        >EN</span>
       </button>
 
 
@@ -132,7 +189,10 @@
 
       <div class="bus-input-row">
 
-        <div class="bus-input-label">
+        <div
+          class="bus-input-label"
+          data-i18n="startLabel"
+        >
           Start:
         </div>
 
@@ -144,6 +204,7 @@
             id="start-stop-input"
             class="bus-input"
             placeholder="select a map pin or Enter bus stop name"
+            data-i18n-placeholder="busStopPlaceholder"
           >
 
           <div
@@ -170,7 +231,10 @@
 
       <div class="bus-input-row after-direction-arrow">
 
-        <div class="bus-input-label">
+        <div
+          class="bus-input-label"
+          data-i18n="destinationLabel"
+        >
           Destination:
         </div>
 
@@ -182,6 +246,7 @@
             id="destination-stop-input"
             class="bus-input"
             placeholder="select a map pin or Enter bus stop name"
+            data-i18n-placeholder="busStopPlaceholder"
           >
 
           <div
@@ -199,6 +264,7 @@
 
       <button
         id="route-search-button"
+        data-i18n="searchRoutes"
         disabled
       >
         Search Routes
