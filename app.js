@@ -4,7 +4,7 @@
 
 const translations = {
 
-  en: {
+  mn: {
     searchPlace: "Search place...",
     searchPlaceButton: "Search place",
     startLabel: "Start:",
@@ -31,7 +31,7 @@ const translations = {
     busStopDataLoadError: "Could not load bus stop data."
   },
 
-  mn: {
+  en: {
     searchPlace: "Газар хайх...",
     searchPlaceButton: "Газар хайх",
     startLabel: "Эхлэх:",
