@@ -770,10 +770,14 @@ body.keyboard-open #bottom-toolbar {
 
 
 body.keyboard-open #bottom-container {
-  bottom: max(
-    4px,
-    env(safe-area-inset-bottom)
+  top: min(
+    40px,
+    calc(24px + env(safe-area-inset-top))
   );
+
+  bottom: auto;
+
+  transform: translateX(-50%);
 }
 
 
