@@ -1,13 +1,33 @@
+:root {
+  --app-height: 100vh;
+}
+
+
+@supports (height: 100dvh) {
+  :root {
+    --app-height: 100dvh;
+  }
+}
+
+
 html,
 body {
   margin: 0;
   width: 100%;
-  height: 100%;
+  height: var(--app-height);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+
+body {
+  position: fixed;
+  inset: 0;
 }
 
 #map {
   width: 100%;
-  height: 100vh;
+  height: 100%;
 }
 
 
@@ -435,7 +455,7 @@ body {
 
   padding: 9px;
 
-  font-size: 15px;
+  font-size: 16px;
 
   box-sizing: border-box;
 }
@@ -478,7 +498,10 @@ body {
 
   border: 1px solid #ccc;
 
-  max-height: 200px;
+  max-height: min(
+    200px,
+    calc(var(--app-height) * 0.36)
+  );
 
   overflow-y: auto;
 
@@ -725,7 +748,7 @@ body {
   }
 
   .bus-input {
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .route-direction-arrow {
@@ -733,4 +756,55 @@ body {
     margin-left: 90px;
   }
 
+}
+
+
+/* ========================================
+   Software Keyboard Layout
+======================================== */
+
+body.keyboard-open #search-panel,
+body.keyboard-open #bottom-toolbar {
+  display: none;
+}
+
+
+body.keyboard-open #bottom-container {
+  bottom: max(
+    4px,
+    env(safe-area-inset-bottom)
+  );
+}
+
+
+body.keyboard-open #route-panel {
+  padding: 0 8px 7px;
+  border-top: 0;
+}
+
+
+body.keyboard-open .bus-input-row {
+  margin-top: 5px;
+}
+
+
+body.keyboard-open .route-direction-arrow {
+  margin-top: 0;
+  margin-bottom: 2px;
+  font-size: 22px;
+  line-height: 0.85;
+}
+
+
+body.keyboard-open #route-search-button {
+  margin-top: 7px;
+  padding: 8px;
+}
+
+
+body.keyboard-open .bus-suggestions {
+  max-height: min(
+    150px,
+    calc(var(--app-height) * 0.32)
+  );
 }

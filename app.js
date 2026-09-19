@@ -1865,6 +1865,315 @@ const destinationInput =
   );
 
 
+/* ========================================
+   Visual Viewport / Software Keyboard
+======================================== */
+
+const appVisualViewport =
+  window.visualViewport;
+
+
+const routeTextInputs = [
+  startInput,
+  destinationInput
+];
+
+
+let normalViewportHeight =
+  appVisualViewport?.height ||
+  window.innerHeight;
+
+
+let lastAppliedViewportHeight =
+  0;
+
+
+let viewportMapResizeTimer =
+  null;
+
+
+let viewportRecoveryTimer =
+  null;
+
+
+let shouldResetWindowScroll =
+  false;
+
+
+function getVisibleViewportHeight() {
+
+
+  return (
+    appVisualViewport?.height ||
+    window.innerHeight ||
+    document.documentElement.clientHeight
+  );
+
+}
+
+
+function isRouteTextInputFocused() {
+
+
+  return routeTextInputs.includes(
+    document.activeElement
+  );
+
+}
+
+
+function scheduleMapViewportRefresh() {
+
+
+  clearTimeout(
+    viewportMapResizeTimer
+  );
+
+
+  viewportMapResizeTimer =
+    window.setTimeout(
+
+      () => {
+
+
+        map.invalidateSize({
+          animate: false,
+          pan: false
+        });
+
+      },
+
+      180
+
+    );
+
+}
+
+
+function updateAppViewport() {
+
+
+  const viewportHeight =
+    getVisibleViewportHeight();
+
+
+  document.documentElement.style.setProperty(
+    "--app-height",
+    `${Math.round(viewportHeight)}px`
+  );
+
+
+  const routeInputFocused =
+    isRouteTextInputFocused();
+
+
+  const keyboardHeightThreshold =
+    Math.max(
+      120,
+      normalViewportHeight * 0.18
+    );
+
+
+  const keyboardOpen =
+    routeInputFocused &&
+    normalViewportHeight - viewportHeight >
+      keyboardHeightThreshold;
+
+
+  const keyboardStateChanged =
+    document.body.classList.contains(
+      "keyboard-open"
+    ) !== keyboardOpen;
+
+
+  document.body.classList.toggle(
+    "keyboard-open",
+    keyboardOpen
+  );
+
+
+  if (
+    !routeInputFocused &&
+    (
+      !shouldResetWindowScroll ||
+      viewportHeight >= normalViewportHeight * 0.82
+    )
+  ) {
+
+
+    normalViewportHeight =
+      viewportHeight;
+
+  }
+
+
+  if (
+    shouldResetWindowScroll &&
+    !routeInputFocused &&
+    viewportHeight >= normalViewportHeight * 0.82
+  ) {
+
+
+    window.scrollTo(
+      0,
+      0
+    );
+
+
+    shouldResetWindowScroll =
+      false;
+
+  }
+
+
+  if (
+    keyboardStateChanged ||
+    Math.abs(
+      viewportHeight - lastAppliedViewportHeight
+    ) >= 2
+  ) {
+
+
+    lastAppliedViewportHeight =
+      viewportHeight;
+
+
+    scheduleMapViewportRefresh();
+
+  }
+
+}
+
+
+function handleRouteInputFocus() {
+
+
+  clearTimeout(
+    viewportRecoveryTimer
+  );
+
+
+  updateAppViewport();
+
+}
+
+
+function handleRouteInputBlur() {
+
+
+  shouldResetWindowScroll =
+    true;
+
+
+  clearTimeout(
+    viewportRecoveryTimer
+  );
+
+
+  viewportRecoveryTimer =
+    window.setTimeout(
+
+      () => {
+
+
+        updateAppViewport();
+
+
+        if (
+          !isRouteTextInputFocused() &&
+          getVisibleViewportHeight() >=
+            normalViewportHeight * 0.82
+        ) {
+
+
+          window.scrollTo(
+            0,
+            0
+          );
+
+
+          scheduleMapViewportRefresh();
+
+        }
+
+      },
+
+      320
+
+    );
+
+}
+
+
+routeTextInputs.forEach(
+
+  (input) => {
+
+
+    input.addEventListener(
+      "focus",
+      handleRouteInputFocus
+    );
+
+
+    input.addEventListener(
+      "blur",
+      handleRouteInputBlur
+    );
+
+  }
+
+);
+
+
+if (
+  appVisualViewport
+) {
+
+
+  appVisualViewport.addEventListener(
+    "resize",
+    updateAppViewport
+  );
+
+
+  appVisualViewport.addEventListener(
+    "scroll",
+    updateAppViewport
+  );
+
+}
+
+
+else {
+
+
+  window.addEventListener(
+    "resize",
+    updateAppViewport
+  );
+
+}
+
+
+window.addEventListener(
+  "orientationchange",
+  () => {
+
+
+    normalViewportHeight =
+      getVisibleViewportHeight();
+
+
+    updateAppViewport();
+
+  }
+);
+
+
+updateAppViewport();
+
+
 const startSuggestions =
   document.getElementById(
     "start-stop-suggestions"
