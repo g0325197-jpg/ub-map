@@ -94,8 +94,6 @@ body {
   box-shadow:
     0 2px 8px
     rgba(0, 0, 0, 0.3);
-
-  touch-action: manipulation;
 }
 
 
@@ -174,31 +172,6 @@ body {
     rgba(0, 0, 0, 0.3);
 
   overflow: visible;
-
-  touch-action: manipulation;
-}
-
-
-#search-panel input,
-#search-panel textarea,
-#search-panel select,
-#search-panel button,
-#bottom-container input,
-#bottom-container textarea,
-#bottom-container select,
-#bottom-container button {
-  touch-action: manipulation;
-}
-
-
-@supports (-webkit-touch-callout: none) {
-
-  input,
-  textarea,
-  select {
-    font-size: 16px;
-  }
-
 }
 
 
