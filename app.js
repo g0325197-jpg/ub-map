@@ -1884,10 +1884,6 @@ let normalViewportHeight =
   window.innerHeight;
 
 
-let lastAppliedViewportHeight =
-  0;
-
-
 let viewportMapResizeTimer =
   null;
 
@@ -1898,6 +1894,28 @@ let viewportRecoveryTimer =
 
 let shouldResetWindowScroll =
   false;
+
+
+let keyboardPanelHeight =
+  0;
+
+
+const bottomContainer =
+  document.getElementById(
+    "bottom-container"
+  );
+
+
+const mapContainer =
+  map.getContainer();
+
+
+let lastMapContainerWidth =
+  mapContainer.clientWidth;
+
+
+let lastMapContainerHeight =
+  mapContainer.clientHeight;
 
 
 function getVisibleViewportHeight() {
@@ -1936,16 +1954,105 @@ function scheduleMapViewportRefresh() {
       () => {
 
 
-        map.invalidateSize({
-          animate: false,
-          pan: false
-        });
+        const mapContainerWidth =
+          mapContainer.clientWidth;
+
+
+        const mapContainerHeight =
+          mapContainer.clientHeight;
+
+
+        if (
+          mapContainerWidth !== lastMapContainerWidth ||
+          mapContainerHeight !== lastMapContainerHeight
+        ) {
+
+
+          lastMapContainerWidth =
+            mapContainerWidth;
+
+
+          lastMapContainerHeight =
+            mapContainerHeight;
+
+
+          map.invalidateSize({
+            animate: false,
+            pan: false
+          });
+
+        }
 
       },
 
       180
 
     );
+
+}
+
+
+function updateKeyboardPanelPosition(
+  keyboardOpen,
+  viewportHeight,
+  viewportOffsetTop
+) {
+
+
+  if (
+    !keyboardOpen
+  ) {
+
+
+    keyboardPanelHeight =
+      0;
+
+
+    document.documentElement.style.removeProperty(
+      "--keyboard-panel-top"
+    );
+
+
+    return;
+
+  }
+
+
+  if (
+    keyboardPanelHeight === 0
+  ) {
+
+
+    keyboardPanelHeight =
+      bottomContainer
+        .getBoundingClientRect()
+        .height;
+
+  }
+
+
+  const keyboardPanelMargin =
+    4;
+
+
+  const visibleViewportBottom =
+    viewportOffsetTop +
+    viewportHeight;
+
+
+  const keyboardPanelTop =
+    Math.max(
+      viewportOffsetTop,
+      visibleViewportBottom -
+        keyboardPanelHeight -
+        keyboardPanelMargin
+    );
+
+
+  document.documentElement.style.setProperty(
+    "--keyboard-panel-top",
+    `${Math.round(keyboardPanelTop)}px`
+  );
 
 }
 
@@ -1960,18 +2067,6 @@ function updateAppViewport() {
   const viewportOffsetTop =
     appVisualViewport?.offsetTop ||
     0;
-
-
-  document.documentElement.style.setProperty(
-    "--app-height",
-    `${Math.round(viewportHeight)}px`
-  );
-
-
-  document.documentElement.style.setProperty(
-    "--visual-viewport-offset-top",
-    `${Math.round(viewportOffsetTop)}px`
-  );
 
 
   const routeInputFocused =
@@ -1991,15 +2086,16 @@ function updateAppViewport() {
       keyboardHeightThreshold;
 
 
-  const keyboardStateChanged =
-    document.body.classList.contains(
-      "keyboard-open"
-    ) !== keyboardOpen;
-
-
   document.body.classList.toggle(
     "keyboard-open",
     keyboardOpen
+  );
+
+
+  updateKeyboardPanelPosition(
+    keyboardOpen,
+    viewportHeight,
+    viewportOffsetTop
   );
 
 
@@ -2036,22 +2132,6 @@ function updateAppViewport() {
 
   }
 
-
-  if (
-    keyboardStateChanged ||
-    Math.abs(
-      viewportHeight - lastAppliedViewportHeight
-    ) >= 2
-  ) {
-
-
-    lastAppliedViewportHeight =
-      viewportHeight;
-
-
-    scheduleMapViewportRefresh();
-
-  }
 
 }
 
@@ -2178,8 +2258,36 @@ window.addEventListener(
 
     updateAppViewport();
 
+
+    scheduleMapViewportRefresh();
+
   }
 );
+
+
+if (
+  "ResizeObserver" in window
+) {
+
+
+  new ResizeObserver(
+    scheduleMapViewportRefresh
+  ).observe(
+    mapContainer
+  );
+
+}
+
+
+else {
+
+
+  window.addEventListener(
+    "resize",
+    scheduleMapViewportRefresh
+  );
+
+}
 
 
 updateAppViewport();
