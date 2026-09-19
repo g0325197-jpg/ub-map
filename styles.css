@@ -1,5 +1,6 @@
 :root {
   --app-height: 100vh;
+  --visual-viewport-offset-top: 0px;
 }
 
 
@@ -770,39 +771,42 @@ body.keyboard-open #bottom-toolbar {
 
 
 body.keyboard-open #bottom-container {
-  top: min(
-    40px,
-    calc(24px + env(safe-area-inset-top))
-  );
+  top: auto;
 
-  bottom: auto;
+  bottom: calc(
+    max(
+      4px,
+      env(safe-area-inset-bottom)
+    )
+    - var(--visual-viewport-offset-top)
+  );
 
   transform: translateX(-50%);
 }
 
 
 body.keyboard-open #route-panel {
-  padding: 0 8px 7px;
+  padding: 0 8px 4px;
   border-top: 0;
 }
 
 
 body.keyboard-open .bus-input-row {
-  margin-top: 5px;
+  margin-top: 3px;
 }
 
 
 body.keyboard-open .route-direction-arrow {
   margin-top: 0;
-  margin-bottom: 2px;
-  font-size: 22px;
-  line-height: 0.85;
+  margin-bottom: 1px;
+  font-size: 18px;
+  line-height: 1;
 }
 
 
 body.keyboard-open #route-search-button {
-  margin-top: 7px;
-  padding: 8px;
+  margin-top: 5px;
+  padding: 7px;
 }
 
 

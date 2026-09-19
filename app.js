@@ -1957,9 +1957,20 @@ function updateAppViewport() {
     getVisibleViewportHeight();
 
 
+  const viewportOffsetTop =
+    appVisualViewport?.offsetTop ||
+    0;
+
+
   document.documentElement.style.setProperty(
     "--app-height",
     `${Math.round(viewportHeight)}px`
+  );
+
+
+  document.documentElement.style.setProperty(
+    "--visual-viewport-offset-top",
+    `${Math.round(viewportOffsetTop)}px`
   );
 
 
