@@ -4,7 +4,7 @@
 
 const translations = {
 
-  mn: {
+  en: {
     searchPlace: "Search place...",
     searchPlaceButton: "Search place",
     startLabel: "Start:",
@@ -28,10 +28,18 @@ const translations = {
     closeRouteSearch: "Close route search",
     backToRouteSearch: "Back to route search",
     switchLanguage: "Switch to Mongolian",
-    busStopDataLoadError: "Could not load bus stop data."
+    busStopDataLoadError: "Could not load bus stop data.",
+    busLocation: "Show Current Bus Location",
+    simulatedBusLocation: "Simulated bus location",
+    recordedGps: "Recorded GPS",
+    elapsed: "Elapsed",
+    busLocationLoading: "Getting bus location...",
+    busLocationUpdated: "Bus location updated.",
+    busLocationFinished: "Replay finished.",
+    busLocationLoadError: "Bus location could not be loaded."
   },
 
-  en: {
+  mn: {
     searchPlace: "Газар хайх...",
     searchPlaceButton: "Газар хайх",
     startLabel: "Эхлэх:",
@@ -55,7 +63,15 @@ const translations = {
     closeRouteSearch: "Маршрут хайлтыг хаах",
     backToRouteSearch: "Маршрут хайлт руу буцах",
     switchLanguage: "Англи хэл рүү шилжих",
-    busStopDataLoadError: "Автобусны буудлын өгөгдлийг ачаалж чадсангүй."
+    busStopDataLoadError: "Автобусны буудлын өгөгдлийг ачаалж чадсангүй.",
+    busLocation: "Автобусны одоогийн байршлыг харуулах",
+    simulatedBusLocation: "Загварчилсан автобусны байршил",
+    recordedGps: "Бичигдсэн GPS",
+    elapsed: "Өнгөрсөн хугацаа",
+    busLocationLoading: "Автобусны байршлыг авч байна...",
+    busLocationUpdated: "Автобусны байршил шинэчлэгдлээ.",
+    busLocationFinished: "Дахин тоглуулах ажиллагаа дууслаа.",
+    busLocationLoadError: "Автобусны байршлыг авч чадсангүй."
   }
 
 };
@@ -237,6 +253,96 @@ let routeSearchRequestId =
   0;
 
 
+function normalizeOsmNodeId(
+  value
+) {
+
+
+  const numericValue =
+    Number(
+      value
+    );
+
+
+  return Number.isSafeInteger(
+    numericValue
+  )
+
+    ? numericValue
+
+    : value;
+
+}
+
+
+const routeDataPaths = [
+  "./data/routes/routes-osm.json",
+  "./data/routes/routes-experimental.json"
+];
+
+
+async function loadRouteDataset(
+  path
+) {
+
+
+  const response =
+    await fetch(
+      path
+    );
+
+
+  if (
+    !response.ok
+  ) {
+
+
+    throw new Error(
+      `Failed to load route geometry from ${path}: ${response.status}`
+    );
+
+  }
+
+
+  const data =
+    await response.json();
+
+
+  if (
+    !Array.isArray(
+      data.routes
+    )
+  ) {
+
+
+    throw new Error(
+      `Invalid route geometry data: ${path}`
+    );
+
+  }
+
+
+  return data.routes.map(
+
+    (route) => ({
+      ...route,
+      stops:
+        Array.isArray(
+          route.stops
+        )
+
+          ? route.stops.map(
+              normalizeOsmNodeId
+            )
+
+          : []
+    })
+
+  );
+
+}
+
+
 
 function clearRoutePolyline() {
 
@@ -279,53 +385,15 @@ async function loadRoutesData() {
 
 
     routesDataPromise =
-      fetch(
-        "./data/routes/routes-osm.json"
+      Promise.all(
+        routeDataPaths.map(
+          loadRouteDataset
+        )
       )
         .then(
 
-          (response) => {
-
-
-            if (
-              !response.ok
-            ) {
-
-
-              throw new Error(
-                `Failed to load route geometry: ${response.status}`
-              );
-
-            }
-
-
-            return response.json();
-
-          }
-
-        )
-        .then(
-
-          (data) => {
-
-
-            if (
-              !Array.isArray(
-                data.routes
-              )
-            ) {
-
-
-              throw new Error(
-                "Invalid route geometry data."
-              );
-
-            }
-
-
-            return data.routes;
-
-          }
+          (routeDatasets) =>
+            routeDatasets.flat()
 
         );
 
@@ -337,6 +405,37 @@ async function loadRoutesData() {
 
     routesData =
       await routesDataPromise;
+
+
+    const experimentalCh31 =
+      routesData.find(
+        (route) =>
+          route.id ===
+          "experimental-ch31-20260918"
+      );
+
+
+    if (
+      experimentalCh31
+    ) {
+
+
+      console.info(
+        [
+          "Experimental route loaded:",
+          `id=${experimentalCh31.id}`,
+          `ref=${experimentalCh31.ref}`,
+          `stops=${experimentalCh31.stops.join(",")}`,
+          `stopIdTypes=${experimentalCh31.stops.map(
+            (nodeId) =>
+              typeof nodeId
+          ).join(",")}`,
+          `rawCoordinateCount=${experimentalCh31.rawCoordinates.length}`,
+          `displayCoordinateCount=${experimentalCh31.displayCoordinates.length}`
+        ].join(" ")
+      );
+
+    }
 
 
     return routesData;
@@ -609,17 +708,24 @@ function showRouteGeometry(
   }
 
 
+  const displayCoordinates =
+    route.displayCoordinates ??
+    route.coordinates;
+
+
   if (
     !Array.isArray(
-      route.coordinates
+      displayCoordinates
     ) ||
 
-    route.coordinates.length < 2
+    displayCoordinates.length < 2
   ) {
 
 
     throw new Error(
-      `Route geometry not found: ${route.relationId}`
+      `Route geometry not found: ${
+        route.relationId ?? route.id
+      }`
     );
 
   }
@@ -627,7 +733,7 @@ function showRouteGeometry(
 
   const segmentCoordinates =
     getRouteSegmentCoordinates(
-      route.coordinates,
+      displayCoordinates,
       startStop,
       destinationStop
     );
@@ -641,7 +747,7 @@ function showRouteGeometry(
 
       L.polyline(
 
-        route.coordinates,
+        displayCoordinates,
 
         {
 
@@ -782,6 +888,14 @@ let currentLocationMarker =
   null;
 
 
+let mapFocusVersion =
+  0;
+
+
+let currentLocationRequestId =
+  0;
+
+
 const currentLocationOptions = {
 
   enableHighAccuracy: true,
@@ -793,8 +907,27 @@ const currentLocationOptions = {
 };
 
 
+function setMapViewFromUserSelection(
+  lat,
+  lng,
+  zoom = 16
+) {
+
+
+  mapFocusVersion++;
+
+
+  map.setView(
+    [lat, lng],
+    zoom
+  );
+
+}
+
+
 function showCurrentLocation(
-  position
+  position,
+  shouldCenterMap
 ) {
 
 
@@ -839,11 +972,17 @@ function showCurrentLocation(
   }
 
 
-  map.setView(
-    [lat, lng],
-    16
-  );
+  if (
+    shouldCenterMap
+  ) {
 
+
+    map.setView(
+      [lat, lng],
+      16
+    );
+
+  }
 }
 
 
@@ -866,9 +1005,35 @@ function handleCurrentLocationError(
 function requestCurrentLocation() {
 
 
+  const requestId =
+    ++currentLocationRequestId;
+
+
+  const requestedMapFocusVersion =
+    mapFocusVersion;
+
+
   navigator.geolocation.getCurrentPosition(
 
-    showCurrentLocation,
+    (position) => {
+
+
+      if (
+        requestId !== currentLocationRequestId
+      ) {
+
+
+        return;
+
+      }
+
+
+      showCurrentLocation(
+        position,
+        requestedMapFocusVersion === mapFocusVersion
+      );
+
+    },
 
     handleCurrentLocationError,
 
@@ -1770,6 +1935,554 @@ const languageToggleCode =
   );
 
 
+const busLocationControls =
+  document.getElementById(
+    "bus-location-controls"
+  );
+
+
+const busLocationButton =
+  document.getElementById(
+    "bus-location-button"
+  );
+
+
+const busLocationStatus =
+  document.getElementById(
+    "bus-location-status"
+  );
+
+
+const experimentalCh31RouteId =
+  "experimental-ch31-20260918";
+
+
+const BUS_LOCATION_API_BASE_URL =
+  "https://ub-bus-ch31-replay-api.shotaro-ub-bus.workers.dev";
+
+
+const busLocationApiUrl =
+  `${BUS_LOCATION_API_BASE_URL.replace(/\/$/, "")}/api/bus-position`;
+
+
+const busLocationIcon =
+  L.divIcon({
+
+    className: "",
+
+    html: [
+      '<div class="bus-location-marker" aria-hidden="true">',
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+      '<rect x="5" y="3" width="14" height="15" rx="3"></rect>',
+      '<path d="M7 8h10M8 18v2M16 18v2"></path>',
+      '<circle cx="8.5" cy="14.5" r="1"></circle>',
+      '<circle cx="15.5" cy="14.5" r="1"></circle>',
+      '</svg>',
+      '</div>'
+    ].join(""),
+
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -20]
+
+  });
+
+
+let selectedBusLocationRouteId =
+  null;
+
+
+let replayStartedAt =
+  null;
+
+
+let busLocationMarker =
+  null;
+
+
+let lastBusLocationPosition =
+  null;
+
+
+let busLocationStatusKey =
+  null;
+
+
+let busLocationRequestId =
+  0;
+
+
+function createBusLocationPopup(
+  position
+) {
+
+
+  const popup =
+    document.createElement(
+      "div"
+    );
+
+
+  const title =
+    document.createElement(
+      "div"
+    );
+
+
+  title.className =
+    "bus-location-popup-title";
+
+
+  title.textContent =
+    position.route;
+
+
+  popup.appendChild(
+    title
+  );
+
+
+  const description =
+    document.createElement(
+      "div"
+    );
+
+
+  description.className =
+    "bus-location-popup-detail";
+
+
+  description.dataset.i18n =
+    "simulatedBusLocation";
+
+
+  popup.appendChild(
+    description
+  );
+
+
+  const source =
+    document.createElement(
+      "div"
+    );
+
+
+  source.className =
+    "bus-location-popup-detail";
+
+
+  source.dataset.i18n =
+    "recordedGps";
+
+
+  popup.appendChild(
+    source
+  );
+
+
+  const elapsed =
+    document.createElement(
+      "div"
+    );
+
+
+  elapsed.className =
+    "bus-location-popup-detail";
+
+
+  elapsed.textContent =
+    `${translate("elapsed")}: ${Math.round(position.elapsedSeconds)} s`;
+
+
+  popup.appendChild(
+    elapsed
+  );
+
+
+  updateTranslatedElements(
+    popup
+  );
+
+
+  return popup;
+
+}
+
+
+function refreshBusLocationText() {
+
+
+  if (
+    busLocationStatusKey
+  ) {
+
+
+    busLocationStatus.textContent =
+      translate(
+        busLocationStatusKey
+      );
+
+  }
+
+
+  if (
+    busLocationMarker &&
+    lastBusLocationPosition
+  ) {
+
+
+    busLocationMarker.setPopupContent(
+      createBusLocationPopup(
+        lastBusLocationPosition
+      )
+    );
+
+  }
+
+}
+
+
+function setBusLocationStatus(
+  translationKey
+) {
+
+
+  busLocationStatusKey =
+    translationKey;
+
+
+  busLocationStatus.textContent =
+    translationKey
+
+      ? translate(
+          translationKey
+        )
+
+      : "";
+
+}
+
+
+function resetBusLocationReplay() {
+
+
+  busLocationRequestId++;
+
+
+  replayStartedAt =
+    null;
+
+
+  lastBusLocationPosition =
+    null;
+
+
+  if (
+    busLocationMarker
+  ) {
+
+
+    map.removeLayer(
+      busLocationMarker
+    );
+
+
+    busLocationMarker =
+      null;
+
+  }
+
+
+  busLocationButton.disabled =
+    false;
+
+
+  setBusLocationStatus(
+    null
+  );
+
+}
+
+
+function deactivateBusLocation() {
+
+
+  resetBusLocationReplay();
+
+
+  selectedBusLocationRouteId =
+    null;
+
+
+  busLocationControls.hidden =
+    true;
+
+}
+
+
+function updateBusLocationAvailability(
+  route
+) {
+
+
+  const nextRouteId =
+    route?.id === experimentalCh31RouteId
+
+      ? route.id
+
+      : null;
+
+
+  if (
+    selectedBusLocationRouteId !== nextRouteId
+  ) {
+
+
+    resetBusLocationReplay();
+
+  }
+
+
+  selectedBusLocationRouteId =
+    nextRouteId;
+
+
+  busLocationControls.hidden =
+    nextRouteId === null;
+
+}
+
+
+function updateBusLocationMarker(
+  position
+) {
+
+
+  const latLng = [
+    position.latitude,
+    position.longitude
+  ];
+
+
+  lastBusLocationPosition =
+    position;
+
+
+  const popupContent =
+    createBusLocationPopup(
+      position
+    );
+
+
+  if (
+    busLocationMarker
+  ) {
+
+
+    busLocationMarker.setLatLng(
+      latLng
+    );
+
+
+    busLocationMarker.setPopupContent(
+      popupContent
+    );
+
+  }
+
+
+  else {
+
+
+    busLocationMarker =
+      L.marker(
+        latLng,
+        {
+          icon: busLocationIcon,
+          zIndexOffset: 5000
+        }
+      )
+        .addTo(map)
+        .bindPopup(
+          popupContent
+        );
+
+  }
+
+}
+
+
+async function requestBusLocation() {
+
+
+  if (
+    selectedBusLocationRouteId !== experimentalCh31RouteId ||
+    busLocationButton.disabled
+  ) {
+
+
+    return;
+
+  }
+
+
+  const isFirstRequest =
+    replayStartedAt === null;
+
+
+  if (
+    isFirstRequest
+  ) {
+
+
+    replayStartedAt =
+      Date.now();
+
+  }
+
+
+  const elapsed =
+    isFirstRequest
+
+      ? 0
+
+      : Math.max(
+          0,
+          (Date.now() - replayStartedAt) / 1000
+        );
+
+
+  const requestId =
+    ++busLocationRequestId;
+
+
+  busLocationButton.disabled =
+    true;
+
+
+  setBusLocationStatus(
+    "busLocationLoading"
+  );
+
+
+  try {
+
+
+    const response =
+      await fetch(
+        `${busLocationApiUrl}?elapsed=${encodeURIComponent(elapsed.toFixed(3))}`,
+        {
+          cache: "no-store"
+        }
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+
+      throw new Error(
+        `Bus location API returned ${response.status}.`
+      );
+
+    }
+
+
+    const position =
+      await response.json();
+
+
+    if (
+      requestId !== busLocationRequestId ||
+      selectedBusLocationRouteId !== experimentalCh31RouteId
+    ) {
+
+
+      return;
+
+    }
+
+
+    if (
+      !Number.isFinite(position.latitude) ||
+      !Number.isFinite(position.longitude)
+    ) {
+
+
+      throw new Error(
+        "Bus location API returned invalid coordinates."
+      );
+
+    }
+
+
+    updateBusLocationMarker(
+      position
+    );
+
+
+    setBusLocationStatus(
+      position.finished
+
+        ? "busLocationFinished"
+
+        : "busLocationUpdated"
+    );
+
+  }
+
+
+  catch (error) {
+
+
+    if (
+      requestId !== busLocationRequestId
+    ) {
+
+
+      return;
+
+    }
+
+
+    setBusLocationStatus(
+      "busLocationLoadError"
+    );
+
+
+    console.error(
+      "Could not load bus location.",
+      error
+    );
+
+  }
+
+
+  finally {
+
+
+    if (
+      requestId === busLocationRequestId
+    ) {
+
+
+      busLocationButton.disabled =
+        false;
+
+    }
+
+  }
+
+}
+
+
+busLocationButton.addEventListener(
+  "click",
+  requestBusLocation
+);
+
+
 function applyLanguage() {
 
 
@@ -1810,17 +2523,17 @@ function applyLanguage() {
   languageToggleFlag.textContent =
     currentLanguage === "en"
 
-      ? "🇬🇧"
+      ? "🇲🇳"
 
-      : "🇲🇳";
+      : "🇬🇧";
 
 
   languageToggleCode.textContent =
     currentLanguage === "en"
 
-      ? "EN"
+      ? "MN"
 
-      : "MN";
+      : "EN";
 
 
   languageToggle.setAttribute(
@@ -1883,6 +2596,9 @@ function applyLanguage() {
     );
 
   }
+
+
+  refreshBusLocationText();
 
 }
 
@@ -1969,6 +2685,9 @@ function returnToRouteSearchMode() {
 
 
   clearRoutePolyline();
+
+
+  deactivateBusLocation();
 
 
   showAllBusStops();
@@ -2089,6 +2808,20 @@ function setBusStop(
       "";
 
   }
+
+
+  console.info(
+    [
+      "Bus stop selected:",
+      `type=${type}`,
+      `osmId=${stop.osmId}`,
+      `nodeIds=${stop.nodeIds.join(",")}`,
+      `nodeIdTypes=${stop.nodeIds.map(
+        (nodeId) =>
+          typeof nodeId
+      ).join(",")}`
+    ].join(" ")
+  );
 
 
   updateBusStopMarkerIcon(
@@ -2213,9 +2946,15 @@ async function loadBusStops() {
         }
 
 
+        const osmId =
+          normalizeOsmNodeId(
+            element.id
+          );
+
+
         const isZaisan =
           zaisanNodeIds.includes(
-            element.id
+            osmId
           );
 
 
@@ -2280,7 +3019,11 @@ async function loadBusStops() {
 
               ? zaisanNodeIds[0]
 
-              : element.id,
+              : osmId,
+
+
+          osmId:
+            osmId,
 
 
           nodeIds:
@@ -2289,7 +3032,7 @@ async function loadBusStops() {
 
               ? [...zaisanNodeIds]
 
-              : [element.id],
+              : [osmId],
 
 
           lat:
@@ -2708,18 +3451,6 @@ function searchBusStops(
           );
 
 
-          map.setView(
-
-            [
-              stop.lat,
-              stop.lng
-            ],
-
-            16
-
-          );
-
-
           if (
             busStopsVisible
           ) {
@@ -2729,6 +3460,12 @@ function searchBusStops(
               .openPopup();
 
           }
+
+
+          setMapViewFromUserSelection(
+            stop.lat,
+            stop.lng
+          );
 
         }
 
@@ -2868,6 +3605,12 @@ function findDirectRouteMatch(
 ) {
 
 
+  const routeStopIds =
+    route.stops.map(
+      normalizeOsmNodeId
+    );
+
+
   for (
     const startNodeId of startStop.nodeIds
   ) {
@@ -2879,14 +3622,18 @@ function findDirectRouteMatch(
 
 
       const startIndex =
-        route.stops.indexOf(
-          startNodeId
+        routeStopIds.indexOf(
+          normalizeOsmNodeId(
+            startNodeId
+          )
         );
 
 
       const destinationIndex =
-        route.stops.indexOf(
-          destinationNodeId
+        routeStopIds.indexOf(
+          normalizeOsmNodeId(
+            destinationNodeId
+          )
         );
 
 
@@ -2899,6 +3646,25 @@ function findDirectRouteMatch(
         startIndex < destinationIndex
 
       ) {
+
+
+        if (
+          route.experimental
+        ) {
+
+
+          console.info(
+            [
+              "Experimental direct route match:",
+              `id=${route.id}`,
+              `startNodeId=${normalizeOsmNodeId(startNodeId)}`,
+              `destinationNodeId=${normalizeOsmNodeId(destinationNodeId)}`,
+              `startIndex=${startIndex}`,
+              `destinationIndex=${destinationIndex}`
+            ].join(" ")
+          );
+
+        }
 
 
         return {
@@ -2965,6 +3731,9 @@ routeSearchButton.addEventListener(
 
 
     clearRoutePolyline();
+
+
+    deactivateBusLocation();
 
 
     showAllBusStops();
@@ -3089,8 +3858,22 @@ routeSearchButton.addEventListener(
 
             ||
 
-            left.route.relationId -
-              right.route.relationId
+            String(
+              left.route.relationId ??
+              left.route.id ??
+              ""
+            ).localeCompare(
+              String(
+                right.route.relationId ??
+                right.route.id ??
+                ""
+              ),
+              undefined,
+              {
+                numeric: true,
+                sensitivity: "base"
+              }
+            )
 
         );
 
@@ -3180,6 +3963,11 @@ routeSearchButton.addEventListener(
 
           }
 
+        );
+
+
+        updateBusLocationAvailability(
+          routeMatch.route
         );
 
 
@@ -3550,18 +4338,6 @@ async function searchPlace() {
               );
 
 
-            map.setView(
-
-              [
-                lat,
-                lon
-              ],
-
-              16
-
-            );
-
-
             if (
               searchMarker
             ) {
@@ -3594,6 +4370,12 @@ async function searchPlace() {
                 )
 
                 .openPopup();
+
+
+            setMapViewFromUserSelection(
+              lat,
+              lon
+            );
 
 
             searchResults.innerHTML =

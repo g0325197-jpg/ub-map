@@ -618,6 +618,91 @@ body {
 
 
 /* ========================================
+   On-demand Bus Location
+======================================== */
+
+#bus-location-controls {
+  margin-top: 8px;
+}
+
+
+#bus-location-controls[hidden] {
+  display: none;
+}
+
+
+#bus-location-button {
+  width: 100%;
+
+  padding: 9px;
+
+  border: 1px solid #9d174d;
+  border-radius: 6px;
+
+  background: #D81B60;
+  color: #fff;
+
+  font: inherit;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+#bus-location-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+
+#bus-location-status:not(:empty) {
+  margin-top: 5px;
+
+  color: #475569;
+
+  text-align: center;
+  font-size: 12px;
+}
+
+
+.bus-location-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  border: 3px solid #fff;
+  border-radius: 50%;
+
+  background: #D81B60;
+  color: #fff;
+
+  box-shadow:
+    0 2px 7px rgba(15, 23, 42, 0.4);
+}
+
+
+.bus-location-marker svg {
+  display: block;
+
+  width: 21px;
+  height: 21px;
+}
+
+
+.bus-location-popup-title {
+  font-weight: 700;
+}
+
+
+.bus-location-popup-detail {
+  margin-top: 3px;
+}
+
+
+/* ========================================
    Smartphone
 ======================================== */
 

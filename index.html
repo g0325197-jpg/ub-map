@@ -19,7 +19,7 @@
 
   <link
     rel="stylesheet"
-    href="./styles.css"
+    href="./styles.css?v=20260919-bus-location"
   >
 
 </head>
@@ -280,6 +280,28 @@
       ></div>
 
 
+      <div
+        id="bus-location-controls"
+        hidden
+      >
+
+        <button
+          id="bus-location-button"
+          type="button"
+          data-i18n="busLocation"
+        >
+          Show Current Bus Location
+        </button>
+
+        <div
+          id="bus-location-status"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+      </div>
+
+
     </div>
 
   </div>
@@ -300,7 +322,7 @@
 
 
 
-  <script src="./app.js"></script>
+  <script src="./app.js?v=20260919-worker-api"></script>
 
 
 </body>
