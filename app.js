@@ -9,7 +9,7 @@ const translations = {
     searchPlaceButton: "Search place",
     startLabel: "Start:",
     destinationLabel: "Destination:",
-    busStopPlaceholder: "select a map pin or Enter bus stop name",
+    busStopPlaceholder: "Select or Enter bus stop",
     searchRoutes: "Search Routes",
     setAsStart: "Set as Start",
     setAsDestination: "Set as Destination",
