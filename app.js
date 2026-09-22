@@ -44,7 +44,7 @@ const translations = {
     searchPlaceButton: "Газар хайх",
     startLabel: "Эхлэх:",
     destinationLabel: "Очих газар:",
-    busStopPlaceholder: "Газрын зураг эсвэл буудлын нэрээс сонгоно уу",
+    busStopPlaceholder: "Буудал сонгох эсвэл нэр оруулах",
     searchRoutes: "Маршрут хайх",
     setAsStart: "Эхлэх цэг болгох",
     setAsDestination: "Очих цэг болгох",
