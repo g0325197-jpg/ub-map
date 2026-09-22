@@ -729,7 +729,7 @@ body {
   }
 
   #bottom-container {
-    width: calc(100% - 12px);
+    width: calc(100% - 8px);
 
     bottom: 10px;
   }
@@ -740,11 +740,11 @@ body {
   }
 
   .bus-input-row {
-    column-gap: 8px;
+    column-gap: 6px;
   }
 
   .bus-input-label {
-    width: 90px;
+    width: 89px;
 
     font-size: 14px;
   }
@@ -762,8 +762,8 @@ body {
   }
 
   .route-direction-arrow {
-    width: calc(100% - 98px);
-    margin-left: 98px;
+    width: calc(100% - 95px);
+    margin-left: 95px;
   }
 
 }
