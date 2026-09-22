@@ -729,9 +729,18 @@ body {
   }
 
   #bottom-container {
-    width: calc(100% - 20px);
+    width: calc(100% - 12px);
 
     bottom: 10px;
+  }
+
+  #route-panel {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .bus-input-row {
+    column-gap: 8px;
   }
 
   .bus-input-label {
@@ -744,9 +753,17 @@ body {
     font-size: 16px;
   }
 
+  .bus-input::placeholder {
+    font-size: 14px;
+  }
+
+  .bus-input-wrapper {
+    min-width: 0;
+  }
+
   .route-direction-arrow {
-    width: calc(100% - 90px);
-    margin-left: 90px;
+    width: calc(100% - 98px);
+    margin-left: 98px;
   }
 
 }
